@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from django.utils.safestring import mark_safe
 
 # Create your models here.
 class BaseModel(models.Model):
