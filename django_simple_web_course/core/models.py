@@ -48,11 +48,12 @@ class LegalNameModel(models.Model):
         PREFIX_MONSIGNOR = 'MSGR', _('Msgr.')
         PREFIX_RIGHT_HONORABLE = 'RTHNR', _('Rt. Hon.')
 
+    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_MISS)
     first_name = models.CharField(max_length=200, blank=False, null=False)
     middle_name = models.CharField(max_length=200, blank=True)
     last_name = models.CharField(max_length=200, blank=False, null=False)
     suffix = models.CharField(max_length=200, blank=True)
-    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_MISS)
+
 
     class Meta:
         abstract = True
@@ -101,11 +102,13 @@ class CoursePage(BaseModel):
     course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
     page_number = models.IntegerField(default=1, help_text='Order of the page')
     page_title = models.CharField(max_length=200, help_text='Title of the page')
-    page_contents = models.TextField(default="", help_text='''
- 	The contents of your page. Regular paragraphs will work as expected
- 	However, this is interpreted in markdown, so you can add extra styling
- 	https://www.markdownguide.org/cheat-sheet/
- 	''')
+    page_contents = models.TextField(default="", help_text=mark_safe('''
+     	The contents of your page. Regular paragraphs will work as expected
+     	However, this is interpreted in markdown, so you can add extra styling<br/>
+     	<a href="https://www.markdownguide.org/cheat-sheet/" target="_blank">
+        Click Here for a Markdown Cheat Sheet</a>
+     	''')
+    )
 
     def __str__(self):
         return '%s %s %s' % (self.course.name, self.page_number, self.page_title)

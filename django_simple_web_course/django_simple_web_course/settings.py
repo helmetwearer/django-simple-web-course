@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -125,6 +126,8 @@ MAX_COURSE_IDLE_TIME_SECONDS = 15 * 60
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfilesdir')
 
 # empty list for no required docs
 # REQUIRED_IDENTIFICATION_DOCUMENTS = []
