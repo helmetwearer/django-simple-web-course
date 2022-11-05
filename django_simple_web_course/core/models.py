@@ -65,17 +65,18 @@ class ContactInfoModel(models.Model):
     fax_number = PhoneNumberField(blank=True)
     work_number = PhoneNumberField(blank=True)
 
-	class Meta:
-		abstract = True
+    class Meta:
+        abstract = True
 
 class Student(BaseModel, LegalNameModel, ContactInfoModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
 class StudentIdentificationDocument(BaseModel):
-	student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE)
-	document = models.FileField(upload_to='uploads/%Y/%m/%d/')
+    student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE)
+    document = models.FileField(upload_to='uploads/%Y/%m/%d/')
     document_title = models.CharField(max_length=300)
     document_description = models.TextField(default='')
+
 
 class Course(BaseModel):
     name = models.CharField(max_length=200)
@@ -153,6 +154,7 @@ class CourseTestInstance(BaseModel):
     student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
     test_started_on = models.DateTimeField(null=True)
     test_finished_on = models.DateTimeField(null=True)
+    available_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_test_instances')
 
 class CourseTestAnswerInstance(BaseModel):
     course_test_instance = models.ForeignKey(CourseTestInstance, default=None, on_delete=models.CASCADE)
