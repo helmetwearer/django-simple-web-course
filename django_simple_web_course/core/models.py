@@ -35,31 +35,26 @@ class BaseModel(models.Model):
 
 class LegalNameModel(models.Model):
 
-	class NamePrefix(models.TextChoices):
-		PREFIX_MISS = 'MS', _('Ms.')
-		PREFIX_MRS = 'MRS', _('Mrs.')
-		PREFIX_MR = 'MR', _('Mr.')
-		PREFIX_MX = 'MX', _('Mx.')
-		PREFIX_DR = 'DR', _('Dr.')
-		PREFIX_REV = 'REV', _('Rev.')
-		PREFIX_PROF = 'PROF', _('Prof.')
-		PREFIX_HONORABLE = 'HNR', _('Hon.')
-		PREFIX_MONSIGNOR = 'MSGR', _('Msgr.')
-		PREFIX_RIGHT_HONORABLE = 'RTHNR', _('Rt. Hon.')
+    class NamePrefix(models.TextChoices):
+        PREFIX_MISS = 'MS', _('Ms.')
+        PREFIX_MRS = 'MRS', _('Mrs.')
+        PREFIX_MR = 'MR', _('Mr.')
+        PREFIX_MX = 'MX', _('Mx.')
+        PREFIX_DR = 'DR', _('Dr.')
+        PREFIX_REV = 'REV', _('Rev.')
+        PREFIX_PROF = 'PROF', _('Prof.')
+        PREFIX_HONORABLE = 'HNR', _('Hon.')
+        PREFIX_MONSIGNOR = 'MSGR', _('Msgr.')
+        PREFIX_RIGHT_HONORABLE = 'RTHNR', _('Rt. Hon.')
 
-	first_name = models.CharField(max_length=200, blank=False, null=False)
-	middle_name = models.CharField(max_length=200, blank=True)
-	last_name =   models.CharField(max_length=200, blank=False, null=False)
-	prefix = models.CharField(
-        max_length=5,
-        choices=NamePrefix.choices,
-        default=NamePrefix.PREFIX_MISS,
-    )
-    #free text for now because list is very long
-    suffix = models.CharField(max_length=200, blank=True) 
+    first_name = models.CharField(max_length=200, blank=False, null=False)
+    middle_name = models.CharField(max_length=200, blank=True)
+    last_name = models.CharField(max_length=200, blank=False, null=False)
+    suffix = models.CharField(max_length=200, blank=True)
+    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_MISS)
 
-	class Meta:
-		abstract = True
+    class Meta:
+        abstract = True
 
 
 class ContactInfoModel(models.Model):
@@ -80,10 +75,10 @@ class Student(BaseModel, LegalNameModel, ContactInfoModel):
 class StudentIdentificationDocument(BaseModel):
 	student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE)
 	document = models.FileField(upload_to='uploads/%Y/%m/%d/')
-	document_title = models.CharField(max_length='300')
+	document_title = models.CharField(max_length=300)
 	document_description = models.TextField(default='')
 
- class Course(BaseModel):
+class Course(BaseModel):
  	name = models.CharField(max_length=200)
  	enforce_minimum_time = models.BooleanField(default=False, 
  		help_text='Does the student have to spend a certain amount of time to complete?')
@@ -92,7 +87,7 @@ class StudentIdentificationDocument(BaseModel):
  	maximum_idle_time_seconds = models.BigIntegerField(default=settings.MAX_COURSE_IDLE_TIME_SECONDS,
  		help_text='Maximum time spent with no inputs before user is considered AFK')
 
- class CoursePage(BaseModel):
+class CoursePage(BaseModel):
  	course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
  	page_number = models.IntegerField(default=1, help_text='Order of the page')
  	page_title = models.CharField(max_length=200, help_text='Title of the page')
@@ -114,7 +109,7 @@ class CoursePageViewInstance(BaseModel):
 	course_page = models.ForeignKey(CoursePage, default=None, on_delete=models.CASCADE)
 	total_seconds_spent = models.BigIntegerField(default=0)
 
- class CourseTest(BaseModel):
+class CourseTest(BaseModel):
  	course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
  	test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
  	maximum_time_seconds = models.BigIntegerField(default=settings.MAXIMUM_TEST_SECONDS_DEFAULT,
@@ -133,6 +128,7 @@ class CoursePageViewInstance(BaseModel):
  		Maximum number of practice tests. 0 is infinite. If you want 0 tests uncheck allow practice tests
  	''')
 
+
 class MultipleChoiceAnswer(BaseModel):
 	value = models.CharField(max_length=300, help_text='What shows up on the multiple choice answer')
 	# used for random generation ordering
@@ -144,28 +140,24 @@ class MultipleChoiceAnswer(BaseModel):
 	is_practice_only = models.BooleanField(default=False, help_text='This question is only for practice tests')
 
 class MultipleChoiceTestQuestion(BaseModel):
-	course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
-	#text field in case it's a long explanation
-	question_contents = models.TextField(default='', help_text'what the question will say')
-	correct_multiple_choice_answer = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE)
-	other_multiple_choice_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_tests',
+    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
+    question_contents = models.TextField(default='', help_text='what the question will say')
+    correct_multiple_choice_answer = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE)
+    other_multiple_choice_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_tests',
 		help_text='List of potential answers to appear in random generation')
-	multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
+    multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
 		help_text = 'Total number of answers that will appear in the questions generated')
 
- class CourseTestInstance(BaseModel):
- 	is_practice = models.BooleanField(default=False)
- 	course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
- 	student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
- 	test_started_on = models.DateTimeField(null=True)
- 	test_finished_on = models.DateTimeField(null=True)
+class CourseTestInstance(BaseModel):
+    is_practice = models.BooleanField(default=False)
+    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
+    test_started_on = models.DateTimeField(null=True)
+    test_finished_on = models.DateTimeField(null=True)
 
- class CourseTestAnswerInstance(BaseModel):
+class CourseTestAnswerInstance(BaseModel):
  	course_test_instance = models.ForeignKey(CourseTestInstance, default=None, on_delete=models.CASCADE)
  	question = models.ForeignKey(MultipleChoiceTestQuestion, default=None, on_delete=models.CASCADE)
  	answer_chosen = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE)
  	answer_chosen_on = models.DateTimeField(default=None)
-
-
-
 
