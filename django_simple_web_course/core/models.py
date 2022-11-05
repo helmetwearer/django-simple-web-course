@@ -72,11 +72,17 @@ class ContactInfoModel(models.Model):
 class Student(BaseModel, LegalNameModel, ContactInfoModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
+    def __str__(self):
+        return '%s %s' % (self.first_name, self.last_name)
+
 class StudentIdentificationDocument(BaseModel):
     student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE)
     document = models.FileField(upload_to='uploads/%Y/%m/%d/')
     document_title = models.CharField(max_length=300)
     document_description = models.TextField(default='')
+
+    def __str__(self):
+        return self.document_title
 
 
 class Course(BaseModel):
@@ -88,6 +94,9 @@ class Course(BaseModel):
     maximum_idle_time_seconds = models.BigIntegerField(default=settings.MAX_COURSE_IDLE_TIME_SECONDS,
  		help_text='Maximum time spent with no inputs before user is considered AFK')
 
+    def __str__(self):
+        return self.name
+
 class CoursePage(BaseModel):
     course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
     page_number = models.IntegerField(default=1, help_text='Order of the page')
@@ -97,6 +106,9 @@ class CoursePage(BaseModel):
  	However, this is interpreted in markdown, so you can add extra styling
  	https://www.markdownguide.org/cheat-sheet/
  	''')
+
+    def __str__(self):
+        return '%s %s %s' % (self.course.name, self.page_number, self.page_title)
 
 class CourseViewInstance(BaseModel):
     student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
@@ -129,6 +141,9 @@ class CourseTest(BaseModel):
  		Maximum number of practice tests. 0 is infinite. If you want 0 tests uncheck allow practice tests
  	''')
 
+    def __str__(self):
+        return '%s %s' %(self.course.name, self.order)
+
 
 class MultipleChoiceAnswer(BaseModel):
     value = models.CharField(max_length=300, help_text='What shows up on the multiple choice answer')
@@ -140,6 +155,9 @@ class MultipleChoiceAnswer(BaseModel):
     is_live_only = models.BooleanField(default=False, help_text='This question is only for live tests')
     is_practice_only = models.BooleanField(default=False, help_text='This question is only for practice tests')
 
+    def __str__(self):
+        return self.value
+
 class MultipleChoiceTestQuestion(BaseModel):
     course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
     question_contents = models.TextField(default='', help_text='what the question will say')
@@ -148,6 +166,9 @@ class MultipleChoiceTestQuestion(BaseModel):
 		help_text='List of potential answers to appear in random generation')
     multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
 		help_text = 'Total number of answers that will appear in the questions generated')
+
+    def __str__(self):
+        return self.question_contents
 
 class CourseTestInstance(BaseModel):
     is_practice = models.BooleanField(default=False)
