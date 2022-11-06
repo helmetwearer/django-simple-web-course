@@ -14,14 +14,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.conf import settings
-from django.conf.urls import include
+from django_registration.backends.activation.views import RegistrationView
+from users.forms import CustomUserRegistrationForm
 
 urlpatterns = [
     path('grappelli/', include('grappelli.urls')), # grappelli URLS
     path('admin/', admin.site.urls),
+    re_path(r'^accounts/register/$',
+        RegistrationView.as_view(
+            form_class=CustomUserRegistrationForm
+        ),
+        name='django_registration_register',
+    ),
+    path('accounts/', include('django_registration.backends.activation.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('', include('core.urls')),
 ]
 
 #if we're debugging serve the media files, don't do this in prod

@@ -71,7 +71,7 @@ class ContactInfoModel(models.Model):
         abstract = True
 
 class Student(BaseModel, LegalNameModel, ContactInfoModel):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
 
     def __str__(self):
         return '%s %s' % (self.first_name, self.last_name)
@@ -94,6 +94,7 @@ class Course(BaseModel):
  		help_text='Minimum time a student has to spend reading for a course to be considered complete')
     maximum_idle_time_seconds = models.BigIntegerField(default=settings.MAX_COURSE_IDLE_TIME_SECONDS,
  		help_text='Maximum time spent with no inputs before user is considered AFK')
+    published = models.BooleanField(default=False, help_text='Course is ready to appear on the home page')
 
     def __str__(self):
         return self.name
@@ -112,6 +113,10 @@ class CoursePage(BaseModel):
 
     def __str__(self):
         return '%s %s %s' % (self.course.name, self.page_number, self.page_title)
+
+class CoursePageMedia(BaseModel):
+    course_page = models.ForeignKey(CoursePage, null=False, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='pagemedia/%Y/%m/%d/')
 
 class CourseViewInstance(BaseModel):
     student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)

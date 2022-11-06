@@ -39,8 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'phonenumber_field',
+    'users.apps.UsersConfig',
+    'django_registration',
     'core',
 ]
+
+AUTH_USER_MODEL = 'users.User'
+
+# console emails for development. Override in local_settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -103,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+MEDIA_URL = 'media/'
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -146,6 +153,8 @@ REQUIRED_IDENTIFICATION_DOCUMENTS = [
 
 
 STATIC_URL = 'static/'
+
+ACCOUNT_ACTIVATION_DAYS = 7
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
