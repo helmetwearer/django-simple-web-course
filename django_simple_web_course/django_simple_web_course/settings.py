@@ -139,18 +139,21 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfilesdir')
 # empty list for no required docs
 # REQUIRED_IDENTIFICATION_DOCUMENTS = []
 # Title and description dicts for each document required. Will be saved on the model
-REQUIRED_IDENTIFICATION_DOCUMENTS = [
+IDENTIFICATION_DOCUMENTS = [
     {
         'title': 'State ID Card', 
-        'description':'A valid drivers liscense or identification card issued by your state'
+        'description':'A valid drivers liscense or identification card issued by your state',
+        'verification_required':True,
     },
     {
         'title': 'Social security card',
-        'description':'A valid social security card issued by the Federal Government'
+        'description':'A valid social security card issued by the Federal Government',
+        'verification_required':True,
 
     },
 ]
 
+LOGIN_REDIRECT_URL = '/student_profile/'
 
 STATIC_URL = 'static/'
 

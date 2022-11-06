@@ -37,6 +37,7 @@ class BaseModel(models.Model):
 class LegalNameModel(models.Model):
 
     class NamePrefix(models.TextChoices):
+        PREFIX_NONE = '', _('')
         PREFIX_MISS = 'MS', _('Ms.')
         PREFIX_MRS = 'MRS', _('Mrs.')
         PREFIX_MR = 'MR', _('Mr.')
@@ -48,11 +49,19 @@ class LegalNameModel(models.Model):
         PREFIX_MONSIGNOR = 'MSGR', _('Msgr.')
         PREFIX_RIGHT_HONORABLE = 'RTHNR', _('Rt. Hon.')
 
-    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_MISS)
+    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_NONE)
     first_name = models.CharField(max_length=200, blank=False, null=False)
     middle_name = models.CharField(max_length=200, blank=True)
     last_name = models.CharField(max_length=200, blank=False, null=False)
     suffix = models.CharField(max_length=200, blank=True)
+
+    @property
+    def full_legal_name(self):
+        # add all 5 parts of the name
+        legal_name = '%s %s %s %s %s' % (
+            self.prefix, self.first_name, self.middle_name, self.last_name, self.suffix)
+        # remove duplicate whitespace and return
+        return ' '.join(legal_name.split())
 
 
     class Meta:
@@ -73,17 +82,52 @@ class ContactInfoModel(models.Model):
 class Student(BaseModel, LegalNameModel, ContactInfoModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
 
+    @classmethod
+    def get_or_create_from_user(cls, userobj):
+        try:
+            from .models import Student, StudentIdentificationDocument
+            student = Student.objects.get(user=userobj)
+        except Student.DoesNotExist:
+            student = Student(user=userobj, email_address=userobj.email,
+                first_name=userobj.first_name, last_name=userobj.last_name)
+            student.save()
+
+            for document in settings.IDENTIFICATION_DOCUMENTS:
+                new_doc = StudentIdentificationDocument(student=student,
+                    document_title=document.get('title', default='Title'),
+                    document_description=document.get('description', default='Description'),
+                    verification_required=document.get('verification_required', default=False),
+                )
+                new_doc.save()
+
+        return student
+
+    @property
+    def is_verified(self):
+        unverified_required_documents = StudentIdentificationDocument.objects.filter(pk=self.pk,
+            verification_required=True, verified=False)
+
+        return (unverified_required_documents.count() > 0)
+
     def __str__(self):
-        return '%s %s' % (self.first_name, self.last_name)
+        return self.full_legal_name
 
 class StudentIdentificationDocument(BaseModel):
-    student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE)
-    document = models.FileField(upload_to='uploads/%Y/%m/%d/')
-    document_title = models.CharField(max_length=300)
-    document_description = models.TextField(default='')
+    student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE,
+        help_text="Student the document belongs to")
+    document = models.FileField(upload_to='uploads/%Y/%m/%d/', blank=True,
+        help_text="The file for the student's document")
+    document_title = models.CharField(max_length=300,
+        help_text="Name of the document. (comes from site settings)")
+    document_description = models.TextField(default='',
+        help_text="Description of the document (comes from site settings)")
+    verification_required = models.BooleanField(default=False,
+        help_text="Do we need to verify this document before the student can begin classes")
+    verified = models.BooleanField(default=False,
+        help_text="Has the document been verified")
 
     def __str__(self):
-        return self.document_title
+        return '%s %s' % (self.student.full_legal_name, self.document_title)
 
 
 class Course(BaseModel):
