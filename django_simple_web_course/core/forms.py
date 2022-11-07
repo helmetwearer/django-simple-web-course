@@ -24,3 +24,8 @@ class StudentIdentificationDocumentForm(ModelForm):
     class Meta:
         model = StudentIdentificationDocument
         fields = ['document_title', 'document_description','document']
+        help_texts = {
+            'document_title': None,
+            'document_description': None,
+            'document': None,
+        }

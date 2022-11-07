@@ -5,9 +5,11 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.safestring import mark_safe
 from .managers import StudentManager, StudentIdentificationDocumentManager
+import uuid
 
 # Create your models here.
 class BaseModel(models.Model):
+    slug = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
     created = models.DateTimeField(
         auto_now_add=True,
@@ -18,6 +20,10 @@ class BaseModel(models.Model):
         auto_now=True,
         editable=False
     )
+
+    @property
+    def slug_value(self):
+        return str(self.slug)
 
     @property
     def admin_change_url(self):
@@ -81,7 +87,7 @@ class ContactInfoModel(models.Model):
         abstract = True
 
 
-class Student(BaseModel, LegalNameModel, ContactInfoModel):
+class Student(LegalNameModel, ContactInfoModel, BaseModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
 
     objects = StudentManager()

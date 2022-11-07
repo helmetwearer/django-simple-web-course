@@ -27,7 +27,7 @@ def student_home(request):
     })
 
 @student_login_required
-def student_document_upload(request, document_pk=None):
-    if not document_pk:
+def student_document_upload(request, document_slug=None):
+    if not document_slug:
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
     return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)

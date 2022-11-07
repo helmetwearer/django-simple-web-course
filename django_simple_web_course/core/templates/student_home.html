@@ -11,7 +11,7 @@
 <br/>
 <br/>
 <br/>
-<form action="{% url 'student_document_upload' document_form.instance.pk %}"
+<form action="{% url 'student_document_upload' document_slug=document_form.instance.slug_value %}"
 	 method="post" enctype="multipart/form-data">
 	{% csrf_token %}
 	{{document_form}}
