@@ -5,9 +5,7 @@ from .models import User
 class CustomUserRegistrationForm(RegistrationForm):
 
     def __init__(self, *args, **kwargs):
-        # first call parent's constructor
         retval = super(CustomUserRegistrationForm, self).__init__(*args, **kwargs)
-        # there's a `fields` property now
         self.fields['first_name'].required = True
         self.fields['first_name'].widget.attrs.update({'autofocus': 'autofocus',
             'required': 'required', 'tabindex':'1'})

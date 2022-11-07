@@ -9,7 +9,7 @@ def student_login_required(function):
             return HttpResponseRedirect('/')
         student_id = request.session.get('student_id', None)
         if student_id is None:
-            student = Student.get_or_create_from_user(user)
+            student = Student.objects.get_or_create_from_user(user=user)
             student_id = student.pk
             request.session['student_id'] = student_id
         request.student = Student.objects.get(pk=student_id)

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.safestring import mark_safe
+from .managers import StudentManager, StudentIdentificationDocumentManager
 
 # Create your models here.
 class BaseModel(models.Model):
@@ -79,40 +80,33 @@ class ContactInfoModel(models.Model):
     class Meta:
         abstract = True
 
+
 class Student(BaseModel, LegalNameModel, ContactInfoModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
 
-    @classmethod
-    def get_or_create_from_user(cls, userobj):
-        try:
-            from .models import Student, StudentIdentificationDocument
-            student = Student.objects.get(user=userobj)
-        except Student.DoesNotExist:
-            student = Student(user=userobj, email_address=userobj.email,
-                first_name=userobj.first_name, last_name=userobj.last_name)
-            student.save()
-
-            for document in settings.IDENTIFICATION_DOCUMENTS:
-                new_doc = StudentIdentificationDocument(student=student,
-                    document_title=document.get('title', default='Title'),
-                    document_description=document.get('description', default='Description'),
-                    verification_required=document.get('verification_required', default=False),
-                )
-                new_doc.save()
-
-        return student
-
+    objects = StudentManager()
     @property
     def is_verified(self):
         unverified_required_documents = StudentIdentificationDocument.objects.filter(pk=self.pk,
             verification_required=True, verified=False)
-
         return (unverified_required_documents.count() > 0)
+
+    @property
+    def document_forms(self):
+        from .forms import StudentIdentificationDocumentForm
+        from .models import StudentIdentificationDocument
+        return [
+            StudentIdentificationDocumentForm(instance=instance)
+            for instance in StudentIdentificationDocument.objects.filter(student=self)
+        ]
 
     def __str__(self):
         return self.full_legal_name
 
 class StudentIdentificationDocument(BaseModel):
+
+    objects = StudentIdentificationDocumentManager()
+
     student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE,
         help_text="Student the document belongs to")
     document = models.FileField(upload_to='uploads/%Y/%m/%d/', blank=True,
