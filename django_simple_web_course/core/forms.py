@@ -1,8 +1,8 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, HiddenInput
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
     CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion)
 
-
+from django.utils.safestring import mark_safe
 
 class StudentProfileForm(ModelForm):
 
@@ -16,10 +16,20 @@ class StudentIdentificationDocumentForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         retval = super(StudentIdentificationDocumentForm, self).__init__(*args, **kwargs)
-        self.fields['document_title'].disabled = True
-        self.fields['document_description'].disabled = True
+        self.fields['document_title'].widget = HiddenInput()
+        self.fields['document_description'].widget = HiddenInput()
         if self.instance and self.instance.verified:
             self.fields['document'].disabled = True
+
+
+    def __str__(self, *args, **kwargs):
+
+        return mark_safe('''
+            <h3>%s</h3>
+            <p>%s</p>
+            %s
+        ''' % ( self.instance.document_title, self.instance.document_description, self.render())
+        )
 
     class Meta:
         model = StudentIdentificationDocument

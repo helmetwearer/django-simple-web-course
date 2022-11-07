@@ -53,7 +53,10 @@ def student_document_upload(request, document_slug=None):
             form.save()
             messages.add_message(request, messages.SUCCESS,
                 'Successful upload of %s' % doc.document_title)
+        else:
+            send_form_error_messages(form, request)
 
+    return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
 
 
     return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
