@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from .decorators import student_login_required
-from .forms import StudentProfileForm, StudentIdentificationDocumentForm
-from .models import StudentIdentificationDocument
-from django.http import HttpResponseRedirect
+from .forms import StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm
+from .models import StudentIdentificationDocument, Student
+from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
 import json
 
 def index(request):
@@ -17,6 +19,54 @@ def send_form_error_messages(form, request):
             messages.add_message(request, messages.ERROR,
             '%s: %s' % (error_field.replace('_', ' ').capitalize(),
                 error['message']))
+
+def email_student_reverification(student):
+    print('student reverification email sends here')
+
+def email_student_verified(student):
+    print('student notified of verification by email')
+
+@staff_member_required
+def student_verification(request, student_slug=None):
+    try:
+        student = Student.objects.get(slug=student_slug)
+        docs = StudentIdentificationDocument.objects.filter(student=student,
+            verification_required=True)
+    except:
+        raise Http404
+    form = StudentVerificationForm()
+    if request.method == 'POST':
+        form = StudentVerificationForm(request.POST)
+        if form.is_valid():
+            # form is approved, verify the student and docs
+            if form['verified'].value() == 'A':
+                for doc in docs:
+                    doc.verified = True
+                    doc.save()
+                student.verified_on = timezone.now()
+                student.verified_by = request.user
+                student.save()
+                email_student_verified(student)
+            # form is rejected, reset docs, unverify student, notify student
+            if form['verified'].value() == 'R':
+                for doc in docs:
+                    doc.verified = False
+                    doc.document = ''
+                    doc.save()
+                student.verified_on = None
+                student.verified_by = None
+                student.verification_ready_on = None
+                student.save()
+                email_student_reverification(student)
+            return HttpResponseRedirect(student.admin_change_url)
+
+    return render(request, 'student_verification.html',{
+        'student':student,
+        'docs':docs,
+        'form': form,
+
+    })
+
 
 @student_login_required
 def student_home(request, file_form=None):

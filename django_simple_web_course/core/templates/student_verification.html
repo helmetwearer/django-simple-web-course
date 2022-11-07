@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1> Verification for {{student.full_legal_name}}</h1>
+<a href="{{student.admin_change_link" target="_blank" >Student Details</a>
+
+{% for doc in docs %}
+
+<p>{{doc.document_title}}</p>
+<p>{{doc.document_description}}</p>
+{% if doc.document %}
+<a href="{{doc.document.url}}" target="_blank">{{doc.document}}</a>
+{% endif %}
+{% endfor %}
+
+<form action="{% url 'student_verification' student_slug=student.slug %}" method="POST">
+	{% csrf_token %}
+	{{form}}
+	<input type="submit" value="Submit">
+</form>
+
+{% endblock %}

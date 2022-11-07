@@ -5,6 +5,10 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.safestring import mark_safe
 from .managers import StudentManager, StudentIdentificationDocumentManager
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils import timezone
+from django.urls import reverse
 import uuid
 
 # Create your models here.
@@ -89,10 +93,30 @@ class ContactInfoModel(models.Model):
 
 class Student(LegalNameModel, ContactInfoModel, BaseModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, primary_key=True)
+    verification_ready_on = models.DateTimeField(blank=True, null=True, editable=False)
+    verified_on = models.DateTimeField(blank=True, null=True, editable=False)
+    verified_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, editable=False,
+        on_delete=models.CASCADE, related_name='students')
 
     objects = StudentManager()
+
+
+    @property
+    def verification_url(self):
+        if self.slug and self.verification_ready_on:
+            return reverse('student_verification', kwargs={'student_slug':self.slug})
+        return None
+
+    @property
+    def verification_link(self):
+        url = self.verification_url
+        if url is None:
+            return ''
+        return mark_safe('<span><a href="%s" target="_blank">Verify Student</a></span>' % (url))
+
     @property
     def is_verified(self):
+
         unverified_required_documents = StudentIdentificationDocument.objects.filter(pk=self.pk,
             verification_required=True, verified=False)
         return (unverified_required_documents.count() > 0)
@@ -128,6 +152,26 @@ class StudentIdentificationDocument(BaseModel):
 
     def __str__(self):
         return '%s %s' % (self.student.full_legal_name, self.document_title)
+
+
+def dispatch_verification_email(student):
+    print(' we should be dispatching the email')
+    pass
+
+@receiver(post_save, sender=StudentIdentificationDocument, dispatch_uid="student_verification_ready")
+def student_verification_ready(sender, instance, **kwargs):
+    student = instance.student
+    if not student.verification_ready_on:
+        total_verification_documents = StudentIdentificationDocument.objects.filter(student=student,
+            verification_required=True)
+        ready_documents = total_verification_documents.exclude(document='')
+        if total_verification_documents.count() == ready_documents.count():
+            student.verification_ready_on = timezone.now()
+            if total_verification_documents.count() == 0:
+                student.verified_on = timezone.now()
+            student.save()
+            if not student.verified_on:
+                dispatch_verification_email(student)
 
 
 class Course(BaseModel):

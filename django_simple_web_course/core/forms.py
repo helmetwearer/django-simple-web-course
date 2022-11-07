@@ -1,8 +1,14 @@
-from django.forms import ModelForm, HiddenInput
+from django.forms import Form, ModelForm, HiddenInput
+from django import forms
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
     CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion)
 
 from django.utils.safestring import mark_safe
+
+
+class StudentVerificationForm(Form):
+    VERIFIED_CHOICES = [('R','Rejected'),('A','Approved')]
+    verified = forms.CharField(label='Verification', widget=forms.RadioSelect(choices=VERIFIED_CHOICES))
 
 class StudentProfileForm(ModelForm):
 
