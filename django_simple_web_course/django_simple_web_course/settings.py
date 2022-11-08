@@ -168,6 +168,9 @@ ACCOUNT_ACTIVATION_DAYS = 7
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = LOGIN_URL
+
 try:
     from .local_settings import *
 except ImportError as e:

@@ -11,6 +11,8 @@ from django.utils import timezone
 from .email_dispatchers import email_student_reverification, email_student_verification_complete
 import json
 
+# views should be class based, for dev speed writing functions to convert later
+
 def index(request):
     return render(request, 'index.html', {})
 
@@ -99,6 +101,9 @@ def student_document_upload(request, document_guid=None):
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
     if request.method == 'POST':
         doc = StudentIdentificationDocument.objects.get(guid=document_guid)
+        if doc.student.user.pk != request.user.pk:
+            # by some miracle you guessed someone else's guid. 404
+            raise Http404
         form = StudentIdentificationDocumentForm(request.POST, request.FILES, instance=doc)
         if form.is_valid():
             form.save()
