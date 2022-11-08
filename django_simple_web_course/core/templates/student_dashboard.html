@@ -2,7 +2,23 @@
 {% load i18n %}
 
 {% block content %}
-Dashboard goes here
+{% if available_courses.count == 0 %}
+<h2>No available courses have been published at this time. Please check back later.</h2>
+{% else %}
+<h2>Choose one of the available courses below</h2>
+<br/>
+<br/>
+<br/>
+{% endif %}
+
+{% for course in available_courses %}
+<div class="course-div">
+	<h3>{{course.name}}</h3>
+	<a href="{% url 'course_home' course_guid=course.guid %}">
+		Course homepage
+	</a>
+</div>
+{% endfor %}
 
 
 {% endblock %}

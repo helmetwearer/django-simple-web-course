@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .decorators import student_login_required
 from .forms import StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm
-from .models import StudentIdentificationDocument, Student
+from .models import StudentIdentificationDocument, Student, Course
 from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
@@ -68,8 +68,20 @@ def student_verification(request, student_guid=None):
 
 @student_login_required
 def student_dashboard(request):
-    return render(request,
-        'student_dashboard.html', {'student':request.student})
+    return render(request, 'student_dashboard.html', {
+        'student':request.student,
+        'available_courses': Course.objects.filter(published=True),
+    })
+
+@student_login_required
+def course_home(request, course_guid=None):
+    if not course_guid:
+        raise Http404
+
+    return render(request, 'course_home.html', {
+        'student': request.student,
+        'course': Course.objects.get(guid=course_guid),
+    })
 
 @student_login_required
 def student_home(request):

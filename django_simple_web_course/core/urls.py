@@ -10,5 +10,7 @@ urlpatterns = [
     re_path(r'^student_verification/(?P<student_guid>[a-zA-Z0-9_-]+)/$',
         views.student_verification, name='student_verification'),
     re_path(r'^student_dashboard/$', views.student_dashboard, name='student_dashboard'),
+    re_path(r'^course_home/(?P<course_guid>[a-zA-Z0-9_-]+)/$',
+        views.course_home, name='course_home'),
 
 ]
