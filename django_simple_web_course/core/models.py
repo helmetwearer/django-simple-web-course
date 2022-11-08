@@ -9,6 +9,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.urls import reverse
+from .email_dispatchers import dispatch_student_verification_email
 import uuid
 
 # Create your models here.
@@ -70,7 +71,7 @@ class LegalNameModel(models.Model):
     def full_legal_name(self):
         # add all 5 parts of the name
         legal_name = '%s %s %s %s %s' % (
-            self.prefix, self.first_name, self.middle_name, self.last_name, self.suffix)
+            self.get_prefix_display(), self.first_name, self.middle_name, self.last_name, self.suffix)
         # remove duplicate whitespace and return
         return ' '.join(legal_name.split())
 
@@ -154,10 +155,6 @@ class StudentIdentificationDocument(BaseModel):
         return '%s %s' % (self.student.full_legal_name, self.document_title)
 
 
-def dispatch_verification_email(student):
-    print(' we should be dispatching the email')
-    pass
-
 @receiver(post_save, sender=StudentIdentificationDocument, dispatch_uid="student_verification_ready")
 def student_verification_ready(sender, instance, **kwargs):
     student = instance.student
@@ -167,12 +164,8 @@ def student_verification_ready(sender, instance, **kwargs):
         ready_documents = total_verification_documents.exclude(document='')
         if total_verification_documents.count() == ready_documents.count():
             student.verification_ready_on = timezone.now()
-            if total_verification_documents.count() == 0:
-                student.verified_on = timezone.now()
             student.save()
-            if not student.verified_on:
-                dispatch_verification_email(student)
-
+            dispatch_student_verification_email(student)
 
 class Course(BaseModel):
     name = models.CharField(max_length=200)

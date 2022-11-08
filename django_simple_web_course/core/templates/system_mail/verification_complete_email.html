@@ -1,0 +1,10 @@
+<p>Dear {{student.first_name}},</p>
+
+<p>Our staff has approved your documents and you may now access the student dashboard.</p>
+
+<p>You can find the dashboard here: <a href="{{url_prepend}}{% url 'student_dashboard'%}">{{url_prepend}}{% url 'student_dashboard'%}</a></p>
+
+{% if admin_note %}
+<p>Note from our staff:</p>
+<p>{{admin_note}}</p>
+{% endif %}

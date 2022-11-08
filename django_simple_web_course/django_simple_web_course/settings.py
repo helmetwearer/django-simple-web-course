@@ -38,11 +38,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'phonenumber_field',
     'users.apps.UsersConfig',
     'django_registration',
     'core',
 ]
+
+SITE_ID = 1
 
 AUTH_USER_MODEL = 'users.User'
 

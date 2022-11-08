@@ -8,5 +8,7 @@ urlpatterns = [
     re_path(r'^student_document_upload/(?P<document_slug>[a-zA-Z0-9_-]+)/$',
         views.student_document_upload, name='student_document_upload'),
     re_path(r'^student_verification/(?P<student_slug>[a-zA-Z0-9_-]+)/$',
-        views.student_verification, name='student_verification')
+        views.student_verification, name='student_verification'),
+    re_path(r'^student_dashboard/$', views.student_dashboard, name='student_dashboard'),
+
 ]

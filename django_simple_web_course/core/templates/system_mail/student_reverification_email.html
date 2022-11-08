@@ -1,0 +1,10 @@
+<p>Dear {{student.first_name}},</p>
+
+<p>Our staff has rejected your verification documents.</p>
+
+<p>Please upload more clear copies of your documents here: <a href="{{url_prepend}}{% url 'student_home'%}">{{url_prepend}}{% url 'student_home'%}</a></p>
+
+{% if admin_note %}
+<p>Note from our staff:</p>
+<p>{{admin_note}}</p>
+{% endif %}

@@ -9,6 +9,8 @@ from django.utils.safestring import mark_safe
 class StudentVerificationForm(Form):
     VERIFIED_CHOICES = [('R','Rejected'),('A','Approved')]
     verified = forms.CharField(label='Verification', widget=forms.RadioSelect(choices=VERIFIED_CHOICES))
+    student_note = forms.CharField(label='(Optional) Note to student',
+        widget=forms.Textarea(), required=False)
 
 class StudentProfileForm(ModelForm):
 

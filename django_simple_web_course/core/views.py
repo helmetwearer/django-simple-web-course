@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
+from .email_dispatchers import email_student_reverification, email_student_verification_complete
 import json
 
 def index(request):
@@ -19,12 +20,6 @@ def send_form_error_messages(form, request):
             messages.add_message(request, messages.ERROR,
             '%s: %s' % (error_field.replace('_', ' ').capitalize(),
                 error['message']))
-
-def email_student_reverification(student):
-    print('student reverification email sends here')
-
-def email_student_verified(student):
-    print('student notified of verification by email')
 
 @staff_member_required
 def student_verification(request, student_slug=None):
@@ -46,7 +41,7 @@ def student_verification(request, student_slug=None):
                 student.verified_on = timezone.now()
                 student.verified_by = request.user
                 student.save()
-                email_student_verified(student)
+                email_student_verification_complete(student, form['student_note'].value())
             # form is rejected, reset docs, unverify student, notify student
             if form['verified'].value() == 'R':
                 for doc in docs:
@@ -57,7 +52,7 @@ def student_verification(request, student_slug=None):
                 student.verified_by = None
                 student.verification_ready_on = None
                 student.save()
-                email_student_reverification(student)
+                email_student_reverification(student, form['student_note'].value())
             return HttpResponseRedirect(student.admin_change_url)
 
     return render(request, 'student_verification.html',{
@@ -69,7 +64,12 @@ def student_verification(request, student_slug=None):
 
 
 @student_login_required
-def student_home(request, file_form=None):
+def student_dashboard(request):
+    return render(request,
+        'student_dashboard.html', {'student':request.student})
+
+@student_login_required
+def student_home(request):
     if request.method =="POST":
         form = StudentProfileForm(request.POST, instance=request.student)
         if form.is_valid():

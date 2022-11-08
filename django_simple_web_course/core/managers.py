@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 class StudentIdentificationDocumentManager(models.Manager):
     needs_implementaion = True
@@ -23,6 +24,13 @@ class StudentManager(models.Manager):
                     verification_required=document.get('verification_required', False),
                 )
                 new_doc.save()
+            verified_doc_count = StudentIdentificationDocument.objects.filter(student=student,
+                verification_required=True).count()
+            if verified_doc_count == 0:
+                print('no verification documents, auto verify')
+                student.verified_on = timezone.now()
+                student.verification_ready_on = timezone.now()
+                student.save()
 
         return student
 
