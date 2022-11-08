@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from .decorators import student_login_required
 from .forms import StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm
-from .models import StudentIdentificationDocument, Student, Course
+from .models import (StudentIdentificationDocument, Student, Course, CoursePage, CoursePageMedia,
+    CoursePageMedia, CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer,
+    MultipleChoiceTestQuestion, CourseTestInstance, CourseTestAnswerInstance)
 from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
@@ -74,7 +76,7 @@ def student_dashboard(request):
     })
 
 @student_login_required
-def course_home(request, course_guid=None):
+def course_home_view(request, course_guid=None):
     if not course_guid:
         raise Http404
 
@@ -82,6 +84,75 @@ def course_home(request, course_guid=None):
         'student': request.student,
         'course': Course.objects.get(guid=course_guid),
     })
+
+@student_login_required
+def course_page_view(request, page_guid=None):
+    if not page_guid:
+        raise Http404
+    course_page = CoursePage.objects.get(guid=page_guid)
+
+    return render(request, 'course_page.html', {
+        'student':request.student,
+        'page': page,
+    })
+
+@student_login_required
+def course_practice_test_home_view(request, test_guid=None):
+    if not test_guid:
+        raise Http404
+    course_test = CourseTest.objects.get(guid=test_guid)
+
+    return render(request, 'course_practice_test_home.html', {
+        'student':request.student,
+        'course_test': course_test,
+    })
+
+
+@student_login_required
+def course_practice_test_question_view(request, question_guid=None):
+    if not question_guid:
+        raise Http404
+    course_test_question = MultipleChoiceTestQuestion.objects.get(guid=question_guid)
+
+    return render(request, 'course_practice_test_question.html', {
+        'student':request.student,
+        'course_test_question': course_test_question,
+    })
+
+@student_login_required
+def course_test_home_view(request, test_guid=None):
+    if not test_guid:
+        raise Http404
+    course_test = CourseTest.objects.get(guid=test_guid)
+
+    return render(request, 'course_test_home.html', {
+        'student':request.student,
+        'course_test': course_test,
+    })
+
+
+@student_login_required
+def course_test_question_view(request, question_guid=None):
+    if not question_guid:
+        raise Http404
+    course_test_question = MultipleChoiceTestQuestion.objects.get(guid=question_guid)
+
+    return render(request, 'course_test_question.html', {
+        'student':request.student,
+        'course_test_question': course_test_question,
+    })
+
+@student_login_required
+def course_complete_view(request, course_guid=None):
+    if not course_guid:
+        raise Http404
+    course = Course.objects.get(guid=course_guid)
+
+    return render(request, 'course_complete.html', {
+        'student': request.student,
+        'course': course,
+    })
+
 
 @student_login_required
 def student_home(request):

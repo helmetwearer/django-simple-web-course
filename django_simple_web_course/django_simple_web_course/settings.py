@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'users.apps.UsersConfig',
     'django_registration',
+    'django_extensions',
     'core',
 ]
 

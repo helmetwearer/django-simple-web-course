@@ -177,6 +177,10 @@ class Course(BaseModel):
     maximum_idle_time_seconds = models.BigIntegerField(default=settings.MAX_COURSE_IDLE_TIME_SECONDS,
  		help_text='Maximum time spent with no inputs before user is considered AFK')
     published = models.BooleanField(default=False, help_text='Course is ready to appear on the home page')
+    pages_require_signature = models.BooleanField(default=False,
+        help_text='Each page will require the student sign that they viewed the page')
+    page_signature_description = models.TextField(default='Your full name',
+        help_text='If pages require signature, this field will describe the signature the student enters')
 
     def __str__(self):
         return self.name
@@ -205,12 +209,17 @@ class CourseViewInstance(BaseModel):
     course_view_start = models.DateTimeField(null=True)
     course_view_stop = models.DateTimeField(null=True)
     total_seconds_spent = models.BigIntegerField(default=0)
+    pages_require_signature = models.BooleanField(default=False)
+    page_signature_description = models.TextField(default='', blank=True)
+    student_course_signature_value = models.CharField(max_length=200, blank=True, null=True)
 
 class CoursePageViewInstance(BaseModel):
-    course_view_instance = models.ForeignKey(CourseViewInstance, default=None, on_delete=models.CASCADE)
+    course_view_instance = models.ForeignKey(CourseViewInstance, default=None, on_delete=models.CASCADE,
+        related_name='course_page_views')
     page_view_start = models.DateTimeField(null=True)
     course_page = models.ForeignKey(CoursePage, default=None, on_delete=models.CASCADE)
     total_seconds_spent = models.BigIntegerField(default=0)
+    page_signature = models.CharField(max_length=200, blank=True, null=True)
 
 class CourseTest(BaseModel):
     course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
