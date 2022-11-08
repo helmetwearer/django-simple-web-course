@@ -93,7 +93,7 @@ def course_page_view(request, page_guid=None):
 
     return render(request, 'course_page.html', {
         'student':request.student,
-        'page': page,
+        'course_page': course_page,
     })
 
 @student_login_required

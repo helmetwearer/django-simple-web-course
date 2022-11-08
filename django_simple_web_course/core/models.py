@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.urls import reverse
 from .email_dispatchers import dispatch_student_verification_email
+from .utils import human_time_duration
 import uuid
 
 # Create your models here.
@@ -140,7 +141,7 @@ class StudentIdentificationDocument(BaseModel):
     objects = StudentIdentificationDocumentManager()
 
     student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE,
-        help_text="Student the document belongs to")
+        help_text="Student the document belongs to", related_name='student_identification_documents')
     document = models.FileField(upload_to='uploads/%Y/%m/%d/', blank=True,
         help_text="The file for the student's document")
     document_title = models.CharField(max_length=300,
@@ -182,11 +183,20 @@ class Course(BaseModel):
     page_signature_description = models.TextField(default='Your full name',
         help_text='If pages require signature, this field will describe the signature the student enters')
 
+    @property
+    def minimum_time(self):
+        return human_time_duration(self.minimum_time_seconds)
+
+    @property
+    def course_pages(self):
+        return self.course_pages.order_by('page_number')
+
     def __str__(self):
         return self.name
 
 class CoursePage(BaseModel):
-    course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE,
+        related_name='course_pages')
     page_number = models.IntegerField(default=1, help_text='Order of the page')
     page_title = models.CharField(max_length=200, help_text='Title of the page')
     page_contents = models.TextField(default="", help_text=mark_safe('''
@@ -201,28 +211,43 @@ class CoursePage(BaseModel):
         return '%s %s %s' % (self.course.name, self.page_number, self.page_title)
 
 class CoursePageMedia(BaseModel):
-    course_page = models.ForeignKey(CoursePage, null=False, on_delete=models.CASCADE)
+    course_page = models.ForeignKey(CoursePage, null=False, on_delete=models.CASCADE,
+        related_name='page_media')
     file = models.FileField(upload_to='pagemedia/%Y/%m/%d/')
 
 class CourseViewInstance(BaseModel):
-    student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE,
+        related_name='course_view_instances')
     course_view_start = models.DateTimeField(null=True)
     course_view_stop = models.DateTimeField(null=True)
     total_seconds_spent = models.BigIntegerField(default=0)
     pages_require_signature = models.BooleanField(default=False)
     page_signature_description = models.TextField(default='', blank=True)
     student_course_signature_value = models.CharField(max_length=200, blank=True, null=True)
+    first_page_view = models.ForeignKey('CoursePageViewInstance', null=True, related_name="+",
+        on_delete=models.CASCADE)
+    last_page_view = models.ForeignKey('CoursePageViewInstance', null=True, related_name="+",
+        on_delete=models.CASCADE)
 
 class CoursePageViewInstance(BaseModel):
     course_view_instance = models.ForeignKey(CourseViewInstance, default=None, on_delete=models.CASCADE,
-        related_name='course_page_views')
+        related_name='course_page_view_instances')
     page_view_start = models.DateTimeField(null=True)
-    course_page = models.ForeignKey(CoursePage, default=None, on_delete=models.CASCADE)
+    course_page = models.ForeignKey(CoursePage, null=True, on_delete=models.CASCADE,
+        related_name='+')
+    course_test = models.ForeignKey('CourseTest', null=True, on_delete=models.CASCADE,
+        related_name='+')
+    course_test_question = models.ForeignKey('MultipleChoiceTestQuestion',
+        null=True, on_delete=models.CASCADE, related_name="+")
+
     total_seconds_spent = models.BigIntegerField(default=0)
     page_signature = models.CharField(max_length=200, blank=True, null=True)
 
 class CourseTest(BaseModel):
-    course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE,
+        related_name='course_tests')
+    max_number_of_question = models.IntegerField(default=0,
+        help_text='maximum number of questions to generate. 0 generates all available questions once.')
     test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
     maximum_time_seconds = models.BigIntegerField(default=settings.MAXIMUM_TEST_SECONDS_DEFAULT,
  		help_text='''
@@ -258,9 +283,11 @@ class MultipleChoiceAnswer(BaseModel):
         return self.value
 
 class MultipleChoiceTestQuestion(BaseModel):
-    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
+    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE,
+        related_name='multiple_choice_test_questions')
     question_contents = models.TextField(default='', help_text='what the question will say')
-    correct_multiple_choice_answer = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE)
+    correct_multiple_choice_answer = models.ForeignKey(MultipleChoiceAnswer, default=None,
+        on_delete=models.CASCADE, related_name='multiple_choice_test_questions')
     other_multiple_choice_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_tests',
 		help_text='List of potential answers to appear in random generation')
     multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
@@ -271,15 +298,20 @@ class MultipleChoiceTestQuestion(BaseModel):
 
 class CourseTestInstance(BaseModel):
     is_practice = models.BooleanField(default=False)
-    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE)
-    student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE)
+    course_test = models.ForeignKey(CourseTest, default=None, on_delete=models.CASCADE,
+        related_name='course_test_instances')
+    student = models.ForeignKey(Student, default=None, on_delete=models.CASCADE,
+        related_name='course_test_instances')
     test_started_on = models.DateTimeField(null=True)
     test_finished_on = models.DateTimeField(null=True)
     available_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_test_instances')
 
 class CourseTestAnswerInstance(BaseModel):
-    course_test_instance = models.ForeignKey(CourseTestInstance, default=None, on_delete=models.CASCADE)
-    question = models.ForeignKey(MultipleChoiceTestQuestion, default=None, on_delete=models.CASCADE)
-    answer_chosen = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE)
+    course_test_instance = models.ForeignKey(CourseTestInstance, default=None, on_delete=models.CASCADE,
+        related_name='course_test_answer_instances')
+    question = models.ForeignKey(MultipleChoiceTestQuestion, default=None, on_delete=models.CASCADE,
+        related_name='course_test_answer_instances')
+    answer_chosen = models.ForeignKey(MultipleChoiceAnswer, default=None, on_delete=models.CASCADE,
+        related_name='course_test_answer_instances')
     answer_chosen_on = models.DateTimeField(default=None)
 
