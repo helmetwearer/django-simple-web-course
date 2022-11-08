@@ -22,9 +22,9 @@ def send_form_error_messages(form, request):
                 error['message']))
 
 @staff_member_required
-def student_verification(request, student_slug=None):
+def student_verification(request, student_guid=None):
     try:
-        student = Student.objects.get(slug=student_slug)
+        student = Student.objects.get(guid=student_guid)
         docs = StudentIdentificationDocument.objects.filter(student=student,
             verification_required=True)
     except:
@@ -92,12 +92,12 @@ def student_home(request):
     })
 
 @student_login_required
-def student_document_upload(request, document_slug=None):
-    # can't look up a doc if there's no slug
-    if not document_slug:
+def student_document_upload(request, document_guid=None):
+    # can't look up a doc if there's no guid
+    if not document_guid:
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
     if request.method == 'POST':
-        doc = StudentIdentificationDocument.objects.get(slug=document_slug)
+        doc = StudentIdentificationDocument.objects.get(guid=document_guid)
         form = StudentIdentificationDocumentForm(request.POST, request.FILES, instance=doc)
         if form.is_valid():
             form.save()

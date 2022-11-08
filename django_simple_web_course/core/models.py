@@ -14,7 +14,7 @@ import uuid
 
 # Create your models here.
 class BaseModel(models.Model):
-    slug = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    guid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
     created = models.DateTimeField(
         auto_now_add=True,
@@ -25,10 +25,6 @@ class BaseModel(models.Model):
         auto_now=True,
         editable=False
     )
-
-    @property
-    def slug_value(self):
-        return str(self.slug)
 
     @property
     def admin_change_url(self):
@@ -104,8 +100,8 @@ class Student(LegalNameModel, ContactInfoModel, BaseModel):
 
     @property
     def verification_url(self):
-        if self.slug and self.verification_ready_on:
-            return reverse('student_verification', kwargs={'student_slug':self.slug})
+        if self.guid and self.verification_ready_on and not self.verified_on:
+            return reverse('student_verification', kwargs={'student_guid':self.guid})
         return None
 
     @property

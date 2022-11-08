@@ -35,9 +35,13 @@ class StudentIdentificationDocumentInline(admin.TabularInline):
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('prefix', 'first_name', 'middle_name', 'last_name',
         'suffix', 'email_address', 'primary_phone_number', 'verification_ready_on',
-        'verified_on', 'verified_by', 'verification_link')
+        'verified_on', 'verified_by', 'get_verification_link')
 
     inlines = (StudentIdentificationDocumentInline,)
+
+    def get_verification_link(self, obj):
+        return obj.verification_link
+    get_verification_link.admin_order_field = 'verification_ready_on'
 
 admin.site.register(Student, StudentAdmin)
 
