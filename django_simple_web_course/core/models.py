@@ -27,6 +27,10 @@ class BaseModel(models.Model):
     )
 
     @property
+    def guid_string(self):
+        return str(self.guid)
+
+    @property
     def admin_change_url(self):
         if self.pk:
             return reverse('admin:%s_%s_change' % (
@@ -113,10 +117,11 @@ class Student(LegalNameModel, ContactInfoModel, BaseModel):
 
     @property
     def is_verified(self):
-
+        if self.verified_on:
+            return True
         unverified_required_documents = StudentIdentificationDocument.objects.filter(pk=self.pk,
             verification_required=True, verified=False)
-        return (unverified_required_documents.count() > 0)
+        return unverified_required_documents.count() == 0
 
     @property
     def document_forms(self):

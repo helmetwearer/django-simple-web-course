@@ -33,7 +33,7 @@ class StudentIdentificationDocumentInline(admin.TabularInline):
     model = StudentIdentificationDocument
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('prefix', 'first_name', 'middle_name', 'last_name',
+    list_display = ('guid', 'prefix', 'first_name', 'middle_name', 'last_name',
         'suffix', 'email_address', 'primary_phone_number', 'verification_ready_on',
         'verified_on', 'verified_by', 'get_verification_link')
 

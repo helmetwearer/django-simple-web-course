@@ -14,7 +14,7 @@
 {% endif %}
 {% endfor %}
 
-<form action="{% url 'student_verification' student_slug=student.slug %}" method="POST">
+<form action="{% url 'student_verification' student_guid=student.guid %}" method="POST">
 	{% csrf_token %}
 	{{form}}
 	<input type="submit" value="Submit">

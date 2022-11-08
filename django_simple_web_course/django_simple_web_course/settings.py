@@ -156,7 +156,8 @@ IDENTIFICATION_DOCUMENTS = [
     },
 ]
 
-LOGIN_REDIRECT_URL = '/student_profile/'
+LOGIN_REDIRECT_URL = '/student_dashboard/'
+STUDENT_PROFILE_URL = '/student_profile/'
 
 STATIC_URL = 'static/'
 

@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .email_dispatchers import email_student_reverification, email_student_verification_complete
 import json
@@ -91,7 +92,7 @@ def student_home(request):
         'document_forms': request.student.document_forms
     })
 
-@student_login_required
+@login_required
 def student_document_upload(request, document_guid=None):
     # can't look up a doc if there's no guid
     if not document_guid:
@@ -105,8 +106,5 @@ def student_document_upload(request, document_guid=None):
                 'Successful upload of %s' % doc.document_title)
         else:
             send_form_error_messages(form, request)
-
-    return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
-
 
     return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
