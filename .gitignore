@@ -1,7 +1,7 @@
 # app specific #
 local_settings.py
 staticfilesdir
-
+.Ds_Store
 # Django #
 *.log
 *.pot

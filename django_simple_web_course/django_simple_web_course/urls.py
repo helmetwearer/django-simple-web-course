@@ -19,19 +19,25 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django_registration.backends.activation.views import RegistrationView
 from users.forms import CustomUserRegistrationForm
+from core.forms import UserPasswordResetForm, UserLoginForm
+from django.contrib.auth.views import PasswordResetView, LoginView
 
 urlpatterns = [
-    path('grappelli/', include('grappelli.urls')), # grappelli URLS
+    #to get custom styling override other apps by going first in accounts
+    path('accounts/password_reset/', PasswordResetView.as_view(
+    template_name='registration/password_reset_form.html',
+    form_class=UserPasswordResetForm),name='password_reset'),
+    path('accounts/login/', LoginView.as_view(template_name="registration/login.html",
+        authentication_form=UserLoginForm), name='login'),
+    re_path(r'^accounts/register/$',RegistrationView.as_view(form_class=CustomUserRegistrationForm),
+        name='django_registration_register',),
+
+
     path('admin/', admin.site.urls),
-    re_path(r'^accounts/register/$',
-        RegistrationView.as_view(
-            form_class=CustomUserRegistrationForm
-        ),
-        name='django_registration_register',
-    ),
+    path('', include('core.urls')),
     path('accounts/', include('django_registration.backends.activation.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', include('core.urls')),
+    path('grappelli/', include('grappelli.urls')), # grappelli URLS
 ]
 
 #if we're debugging serve the media files, don't do this in prod

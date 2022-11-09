@@ -2,9 +2,38 @@ from django.forms import Form, ModelForm, HiddenInput
 from django import forms
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
     CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion)
-
+from django.contrib.auth.forms import PasswordResetForm, AuthenticationForm, UsernameField
 from django.utils.safestring import mark_safe
 
+class UserLoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super(UserLoginForm, self).__init__(*args, **kwargs)
+
+    username = UsernameField(widget=forms.TextInput(
+        attrs={
+            'class': 'form-control form-control-user', 'type': 'email',
+            'placeholder': 'Enter Email Address...'
+        }
+    ))
+
+    password = forms.CharField(widget=forms.PasswordInput(
+        attrs={
+            'class': 'form-control form-control-user',
+            'placeholder': 'Password',
+        }
+    ))
+
+
+class UserPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super(UserPasswordResetForm, self).__init__(*args, **kwargs)
+
+    email = forms.EmailField(label='', widget=forms.EmailInput(attrs={
+        'class': 'form-control form-control-user',
+        'placeholder': 'Enter Email Address...',
+        'type': 'email',
+        'name': 'email'
+        }))
 
 class StudentVerificationForm(Form):
     VERIFIED_CHOICES = [('R','Rejected'),('A','Approved')]

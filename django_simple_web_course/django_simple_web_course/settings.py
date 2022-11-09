@@ -31,6 +31,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'users.apps.UsersConfig',
+    'core',
+    'django_registration',
     'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,10 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'phonenumber_field',
-    'users.apps.UsersConfig',
-    'django_registration',
     'django_extensions',
-    'core',
 ]
 
 SITE_ID = 1
