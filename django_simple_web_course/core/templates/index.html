@@ -1,6 +1,23 @@
-{% extends "base.html" %}
+{% extends "external_base_2_column.html" %}
 {% load i18n %}
 
-{% block content %}
-Home page here
+{% block right_column %}
+
+<h2>Django Simple Web Course</h2>
+<h5>A tool for creating online classes</h5>
+
+
+{% if user.is_authenticated %}
+
+<p>You are logged in, {{user.first_name}}</p>
+<a class="btn btn-success btn-user btn-block" href="{% url 'student_home' %}">{% trans "Go to my account" %}</a>
+<br/><br/><br/>
+{% endif %}
+
+
+<a class="btn btn-primary btn-user btn-block" href="{% url 'django_registration_register' %}">{% trans "Register an Account" %}</a>
+
+<a class="btn btn-secondary btn-user btn-block" href="{% url 'login' %}">{% trans "Login to my account" %}</a>
+
+
 {% endblock %}
