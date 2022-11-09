@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% load i18n %}
 
 {% block content %}
 <h1> Verification for {{student.full_legal_name}}</h1>
-<a href="{{student.admin_change_link" target="_blank" >Student Details</a>
+<a href="{{student.admin_change_url}}" target="_blank" >Student Details</a>
 
 {% for doc in docs %}
 
