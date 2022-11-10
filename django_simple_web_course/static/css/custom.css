@@ -1,3 +1,19 @@
 .errorlist li {
 	color: red;
 }
+
+.intl-tel-input::placeholder{
+    font-weight: bold;
+    opacity: .5;
+    color: #3385ff;
+}
+.intl-tel-input::-webkit-input-placeholder { /* Edge */
+  font-weight: bold;
+  opacity: .5;
+  color: #3385ff;
+}
+.intl-tel-input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  font-weight: bold;
+  opacity: .5;
+  color: #3385ff;
+}

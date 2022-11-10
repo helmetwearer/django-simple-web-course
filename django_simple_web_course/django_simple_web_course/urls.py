@@ -19,7 +19,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django_registration.backends.activation.views import RegistrationView
 from users.forms import CustomUserRegistrationForm
-from core.forms import UserPasswordResetForm, UserLoginForm
+from users.forms import UserPasswordResetForm, UserLoginForm
 from django.contrib.auth.views import PasswordResetView, LoginView
 
 urlpatterns = [
