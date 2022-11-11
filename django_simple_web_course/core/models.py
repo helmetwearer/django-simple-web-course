@@ -190,8 +190,13 @@ class Course(BaseModel):
         return human_time_duration(self.minimum_time_seconds)
 
     @property
-    def course_pages(self):
+    def course_pages_ordered(self):
         return self.course_pages.order_by('page_number')
+
+    @property
+    def course_tests_ordered(self):
+        return self.course_tests.order_by('order')
+    
 
     def __str__(self):
         return self.name
@@ -258,6 +263,7 @@ class CoursePageViewInstance(BaseModel):
 class CourseTest(BaseModel):
     course = models.ForeignKey(Course, default=None, on_delete=models.CASCADE,
         related_name='course_tests')
+    order = models.IntegerField(default=1)
     max_number_of_question = models.IntegerField(default=0,
         help_text='maximum number of questions to generate. 0 generates all available questions once.')
     test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
@@ -271,8 +277,8 @@ class CourseTest(BaseModel):
  		help_text='If you want all answers in the test to have a fixed length')
     course_fixed_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
  		help_text='The fixed length of the answers if "Is course fixed answer length" is checked')
-    order = models.IntegerField(default=1)
     allow_practice_tests = models.BooleanField(default=True, help_text='Turn practice tests on or off')
+    only_practice_test = models.BooleanField(default=False, help_text='When turned on only test only counts for practice')
     maximum_practice_tests = models.IntegerField(default=0, help_text='''
  		Maximum number of practice tests. 0 is infinite. If you want 0 tests uncheck allow practice tests
  	''')

@@ -1,6 +1,12 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
 {% load core_filters %}
+
+
+{% block extra_left_nav %}
+{% include 'course_leftnav.html' %}
+{% endblock %}
+
 {% block content %}
 
 <h2>{{course_page.page_title}}</h2>
