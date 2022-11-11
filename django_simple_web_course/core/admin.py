@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
 CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion,
-CourseTestInstance, CourseTestAnswerInstance, CoursePageMedia)
+ CoursePageMedia)
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext_lazy as _
 
@@ -80,5 +80,10 @@ class MultipleChoiceTestQuestionAdmin(admin.ModelAdmin):
     inlines = (MultipleChoiceOtherAnswerInline, )
 
 admin.site.register(MultipleChoiceTestQuestion, MultipleChoiceTestQuestionAdmin)
+
+class CoursePageViewInstanceAdmin(admin.ModelAdmin):
+    list_display = ('url', 'course_view_instance', 'page_view_start', 'page_view_stop', 'total_seconds_spent')
+
+admin.site.register(CoursePageViewInstance,CoursePageViewInstanceAdmin)
 
 
