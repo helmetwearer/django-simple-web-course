@@ -90,10 +90,12 @@ def course_page_view(request, page_guid=None):
     if not page_guid:
         raise Http404
     course_page = CoursePage.objects.get(guid=page_guid)
-
+    page_index_line = CoursePage.objects.nav_page_split_for_course(course=course_page.course,page=course_page)
     return render(request, 'course_page.html', {
         'student':request.student,
         'course_page': course_page,
+        'course':course_page.course,
+        'page_index_line':page_index_line,
     })
 
 @student_login_required
@@ -105,6 +107,7 @@ def course_practice_test_home_view(request, test_guid=None):
     return render(request, 'course_practice_test_home.html', {
         'student':request.student,
         'course_test': course_test,
+        'course': course_test.course,
     })
 
 
@@ -117,6 +120,8 @@ def course_practice_test_question_view(request, question_guid=None):
     return render(request, 'course_practice_test_question.html', {
         'student':request.student,
         'course_test_question': course_test_question,
+        'course_test':course_test_question.course_test,
+        'course':course_test_question.course_test.course,
     })
 
 @student_login_required
@@ -128,6 +133,7 @@ def course_test_home_view(request, test_guid=None):
     return render(request, 'course_test_home.html', {
         'student':request.student,
         'course_test': course_test,
+        'course': course_test.course,
     })
 
 
@@ -140,6 +146,8 @@ def course_test_question_view(request, question_guid=None):
     return render(request, 'course_test_question.html', {
         'student':request.student,
         'course_test_question': course_test_question,
+        'course_test':course_test_question.course_test,
+        'course':course_test_question.course_test.course,
     })
 
 @student_login_required

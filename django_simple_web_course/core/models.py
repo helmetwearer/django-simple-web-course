@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.safestring import mark_safe
-from .managers import StudentManager, StudentIdentificationDocumentManager
+from .managers import *
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -172,6 +172,7 @@ def student_verification_ready(sender, instance, **kwargs):
 
 class Course(BaseModel):
     name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default='', help_text='Home page description of the course')
     enforce_minimum_time = models.BooleanField(default=False,
  		help_text='Does the student have to spend a certain amount of time to complete?')
     minimum_time_seconds = models.BigIntegerField(default=settings.MINIMUM_COURSE_SECONDS_DEFAULT,
@@ -208,6 +209,15 @@ class CoursePage(BaseModel):
      	''')
     )
 
+    objects = CoursePageManager()
+
+    @property
+    def course_url(self):
+        if self.guid:
+            return reverse('course_page', kwargs={'page_guid':self.guid})
+        return None
+
+
     def __str__(self):
         return '%s %s %s' % (self.course.name, self.page_number, self.page_title)
 
@@ -231,6 +241,7 @@ class CourseViewInstance(BaseModel):
         on_delete=models.CASCADE)
 
 class CoursePageViewInstance(BaseModel):
+    url = models.TextField(blank=True, default='')
     course_view_instance = models.ForeignKey(CourseViewInstance, default=None, on_delete=models.CASCADE,
         related_name='course_page_view_instances')
     page_view_start = models.DateTimeField(null=True)

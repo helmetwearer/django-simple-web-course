@@ -1,8 +1,12 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
-
+{% load core_filters %}
 {% block content %}
 
-course page
+<h2>{{course_page.page_title}}</h2>
 
+<div id="page_content" class="overflow-auto markdown_content">
+	{{course_page.page_contents|render_markdown}}
+</div>
+{{page_index_line}}
 {% endblock %}
