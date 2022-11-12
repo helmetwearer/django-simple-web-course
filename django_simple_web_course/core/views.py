@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from .decorators import student_login_required
+from .decorators import student_login_required, page_tracking_enabled
 from .forms import StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm
 from .models import (StudentIdentificationDocument, Student, Course, CoursePage, CoursePageMedia,
     CoursePageMedia, CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer,
-    MultipleChoiceTestQuestion, CourseTestInstance, CourseTestAnswerInstance)
+    MultipleChoiceTestQuestion)
 from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
@@ -86,6 +86,7 @@ def course_home_view(request, course_guid=None):
     })
 
 @student_login_required
+@page_tracking_enabled
 def course_page_view(request, page_guid=None):
     if not page_guid:
         raise Http404
@@ -99,6 +100,7 @@ def course_page_view(request, page_guid=None):
     })
 
 @student_login_required
+@page_tracking_enabled
 def course_practice_test_home_view(request, test_guid=None):
     if not test_guid:
         raise Http404
@@ -112,6 +114,7 @@ def course_practice_test_home_view(request, test_guid=None):
 
 
 @student_login_required
+@page_tracking_enabled
 def course_practice_test_question_view(request, question_guid=None):
     if not question_guid:
         raise Http404
@@ -125,6 +128,7 @@ def course_practice_test_question_view(request, question_guid=None):
     })
 
 @student_login_required
+@page_tracking_enabled
 def course_test_home_view(request, test_guid=None):
     if not test_guid:
         raise Http404
@@ -138,6 +142,7 @@ def course_test_home_view(request, test_guid=None):
 
 
 @student_login_required
+@page_tracking_enabled
 def course_test_question_view(request, question_guid=None):
     if not question_guid:
         raise Http404
@@ -151,6 +156,7 @@ def course_test_question_view(request, question_guid=None):
     })
 
 @student_login_required
+@page_tracking_enabled
 def course_complete_view(request, course_guid=None):
     if not course_guid:
         raise Http404
