@@ -25,7 +25,7 @@
 
 <div class="row">
 	{% if course.course_pages.count > 0 %}
-	{% with course.course_pages.all|first as page %}
+	{% with course.course_pages_ordered.all|first as page %}
 	<div class="col-xl-3">
 		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-primary btn-user btn-block">
 			<i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Begin Course

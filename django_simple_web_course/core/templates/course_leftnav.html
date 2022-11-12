@@ -1,15 +1,33 @@
-<!-- no extra left nav for now
 <li class="nav-item active">
     <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
         <i class="fas fa-fw fa-cog"></i>
-        <span>Components</span>
+        <span>{{course.name}}</span>
     </a>
     <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Custom Components:</h6>
-            <a class="collapse-item active" href="buttons.html">Buttons</a>
-            <a class="collapse-item" href="cards.html">Cards</a>
+            <h6 class="collapse-header">Course Contents:</h6>
+            <a class="collapse-item active" href="{% url 'course_home' course_guid=course.guid %}">Home Page</a>
+            {% with course.course_pages_ordered.all|first as page %}
+            <!-- first page for now. Should look at view history and go to last seen page -->
+            <a class="collapse-item" href="{% url 'course_page' page_guid=page.guid %}">Readings</a>
+            {% endwith %}
+            {% for test_instance in course.course_tests_ordered %}
+            <!-- right now brings to practice test home, should route to question student is on when tracking there -->
+            {% if test_instance.allow_practice_tests %}
+            <a class="collapse-item" href="{% url 'course_practice_test_home' test_guid=test_instance.guid %}">
+            	Practice Test - {{test_instance.order}}
+            </a>
+            {% endif %}
+            {% endfor %}
+            <!-- right now brings to test home, should route to question student is on when tracking there -->
+            {% for test_instance in course.course_tests_ordered %}
+            {% if not test_instance.only_practice_test %}
+            <a class="collapse-item" href="{% url 'course_test_home' test_guid=test_instance.guid %}">
+            	Test - {{test_instance.order}}
+            </a>
+            {% endif %}
+            {% endfor %}
+
         </div>
     </div>
 </li>
--->

@@ -38,7 +38,6 @@ class StudentManager(models.Manager):
 
 
 class CoursePageManager(models.Manager):
-    needs_implementaion = True
 
     def nav_page_split_for_course(self, course=None, page=None):
 
