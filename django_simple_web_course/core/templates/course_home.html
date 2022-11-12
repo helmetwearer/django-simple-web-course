@@ -1,18 +1,50 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
 
+
+{% block extra_left_nav %}
+{% include 'course_leftnav.html' %}
+{% endblock %}
+
 {% block content %}
 
 <h2>{{course.name}}</h2>
-
+<br/>
+<br/>
+<br/>
 {% if course.enforce_minimum_time %}
+<h5><b>Minimum Time Requirement</b></h5>
 <p>You must spend at least {{course.minimum_time}} on the material presented within this course</p>
 {% endif %}
 
-{% if course.course_pages.count > 0 %}
-{% with course.course_pages.all|first as page %}
-<a href="{% url 'course_page' page_guid=page.guid %}">Begin Course</a>
-{% endwith %}
+{% if course.description %}
+<h5><b>Course Description</b></h5>
+<p>{{course.description}}</p>
 {% endif %}
+
+
+<div class="row">
+	{% if course.course_pages.count > 0 %}
+	{% with course.course_pages.all|first as page %}
+	<div class="col-xl-3">
+		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-primary btn-user btn-block">
+			<i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Begin Course
+		</a>
+
+	</div>
+	{% endwith %}
+	{% else %}
+	<div class="col-xl-3">
+		<h5><b>Course is coming soon!</b></h5>
+	</div>
+	{% endif %}
+	<div class="col-xl-3">
+		<a href="{% url 'student_dashboard' %}" class="btn btn-secondary btn-user btn-block">
+		<i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Back to Courses</a>
+	</div>
+</div>
+
+
+
 
 {% endblock %}
