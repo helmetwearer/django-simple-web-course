@@ -24,14 +24,17 @@
                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                         {{course.name}}
                     </div>
-                    <a class="btn btn-primary btn-user btn-block" href="{% url 'course_home' course_guid=course.guid %}">
-                    	Course Homepage
+                    {% if course|course_continue_url:request.student %}
+                    <a href="{{course|course_continue_url:request.student }}" class="btn btn-primary btn-user btn-block">
+                        <i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Continue Course
                     </a>
+                    {% else %}
+                    <a class="btn btn-secondary btn-user btn-block" href="{% url 'course_home' course_guid=course.guid %}">
+                    	 <i class="fa-solid fa-play"></i>&nbsp;&nbsp;&nbsp;Course Homepage
+                    </a>
+                    {% endif %}
                     <!-- need to add additional continue button here when tracking is there for it -->
                     <!-- need to add course complete and cert button when implemented -->
-                </div>
-                <div class="col-auto">
-                    <i class="fa-solid fa-pen-to-square"></i>
                 </div>
             </div>
         </div>
