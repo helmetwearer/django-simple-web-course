@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'phonenumber_field',
     'django_extensions',
+    'intl_tel_input',
 ]
 
 SITE_ID = 1

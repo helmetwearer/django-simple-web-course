@@ -1,10 +1,80 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
 
+{% block extra_css %}
+{{form.media.css}}
+{% endblock %}
+
+{% block extra_js %}
+{{form.media.js}}
+{% endblock %}
+
+
 {% block content %}
 <form action="{% url 'student_home'%}" method="post">
     {% csrf_token %}
-    {{ form }}
+    <div class="form-row">
+    	<div class="col">
+    	{{ form.prefix.errors }}
+    	{{ form.prefix.label_tag }}
+        {{ form.prefix }}
+        </div>
+    	<div class="col">
+    	{{ form.first_name.errors }}
+    	{{ form.first_name.label_tag }}
+        {{ form.first_name }}
+        </div>
+        <div class="col">
+        {{ form.middle_name.errors }}
+        {{ form.middle_name.label_tag }}
+        {{ form.middle_name }}
+        </div>
+        <div class="col">
+        {{ form.last_name.errors }}
+        {{ form.last_name.label_tag }}
+        {{ form.last_name }}
+        </div>
+        <div class="col">
+        {{ form.suffix.errors }}
+        {{ form.suffix.label_tag }}
+        {{ form.suffix }}
+        </div>
+    </div>
+    <div class="form-row">
+    	<div class="col">
+    	{{ form.primary_phone_number.errors }}
+        {{ form.primary_phone_number.label_tag }}
+        {{ form.primary_phone_number }}
+    	</div>
+    	<div class="col">
+    	{{ form.mobile_phone_number.errors }}
+        {{ form.mobile_phone_number.label_tag }}
+        {{ form.mobile_phone_number }}
+    	</div>
+    	<div class="col">
+    	{{ form.home_phone_number.errors }}
+        {{ form.home_phone_number.label_tag }}
+        {{ form.home_phone_number }}
+    	</div>
+    </div>
+    <div class="form-row">
+    	<div class="col">
+    	{{ form.email_address.errors }}
+        {{ form.email_address.label_tag }}
+        {{ form.email_address }}
+    	</div>
+    	<div class="col">
+    	{{ form.work_number.errors }}
+        {{ form.work_number.label_tag }}
+        {{ form.work_number }}
+    	</div>
+    	<div class="col">
+    	{{ form.fax_number.errors }}
+        {{ form.fax_number.label_tag }}
+        {{ form.fax_number }}
+    	</div>
+    </div>
+
     <input type="submit" value="Save Changes">
 </form>
 {% for document_form in document_forms %}
