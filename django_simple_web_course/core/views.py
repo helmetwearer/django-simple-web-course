@@ -190,8 +190,9 @@ def student_document_upload(request, document_guid=None):
         form = StudentIdentificationDocumentForm(request.POST, request.FILES, instance=doc)
         if form.is_valid():
             form.save()
-            messages.add_message(request, messages.SUCCESS,
-                'Successful upload of %s' % doc.document_title)
+            if form.instance.document:
+                messages.add_message(request, messages.SUCCESS,
+                    'Successful upload of %s' % doc.document_title)
         else:
             send_form_error_messages(form, request)
 

@@ -62,7 +62,8 @@ class LegalNameModel(models.Model):
         PREFIX_MONSIGNOR = 'MSGR', _('Msgr.')
         PREFIX_RIGHT_HONORABLE = 'RTHNR', _('Rt. Hon.')
 
-    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_NONE)
+    prefix = models.CharField(max_length=5, choices=NamePrefix.choices, default=NamePrefix.PREFIX_NONE,
+        blank=True)
     first_name = models.CharField(max_length=200, blank=False, null=False)
     middle_name = models.CharField(max_length=200, blank=True)
     last_name = models.CharField(max_length=200, blank=False, null=False)
