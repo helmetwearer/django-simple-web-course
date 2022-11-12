@@ -1,6 +1,6 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
-
+{% load core_filters %}
 
 {% block extra_left_nav %}
 {% include 'course_leftnav.html' %}
@@ -27,10 +27,9 @@
 	{% if course.course_pages.count > 0 %}
 	{% with course.course_pages_ordered.all|first as page %}
 	<div class="col-xl-3">
-		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-primary btn-user btn-block">
+		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-secondary btn-user btn-block">
 			<i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Begin Course
 		</a>
-
 	</div>
 	{% endwith %}
 	{% else %}

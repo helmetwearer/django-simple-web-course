@@ -185,6 +185,16 @@ class Course(BaseModel):
     page_signature_description = models.TextField(default='Your full name',
         help_text='If pages require signature, this field will describe the signature the student enters')
 
+    def continue_url(self, student):
+        try:
+            instance = CourseViewInstance.objects.get(course=self, student=student)
+        except CourseViewInstance.DoesNotExist:
+            return ""
+        pages_viewed = CoursePageViewInstance.objects.filter(course_view_instance=instance)
+        if pages_viewed:
+            return pages_viewed.latest('created').url
+        return ""
+
     @property
     def minimum_time(self):
         return human_time_duration(self.minimum_time_seconds)
