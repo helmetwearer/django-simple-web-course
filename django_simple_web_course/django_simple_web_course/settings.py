@@ -93,13 +93,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'django_simple_web_course.wsgi.application'
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+# SQLite no longer enough. Some features require postgres
+# Will dockerize in the future, but you'll need to setup postgres for now
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'django_simple_web_course',
+        'USER': 'django',
+        'PASSWORD': 'djangouser',
+        'HOST': '127.0.0.1', 
+        'PORT': '5432',
     }
 }
 
@@ -172,6 +176,8 @@ STUDENT_PROFILE_URL = '/student_profile/'
 STATIC_URL = 'static/'
 
 ACCOUNT_ACTIVATION_DAYS = 7
+
+LEFT_NAV_HISTORY_MAX = 5
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

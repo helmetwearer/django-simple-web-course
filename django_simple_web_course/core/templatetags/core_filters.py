@@ -15,3 +15,7 @@ def render_markdown(value):
 @register.filter
 def course_continue_url(course, student):
     return mark_safe(course.continue_url(student))
+
+@register.filter
+def course_recent_url_history(course, student):
+    return course.url_recent_history(student)

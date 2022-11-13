@@ -195,6 +195,29 @@ class Course(BaseModel):
             return pages_viewed.latest('created').url
         return ""
 
+    def url_recent_history(self, student):
+        try:
+            instance = CourseViewInstance.objects.get(course=self, student=student)
+        except CourseViewInstance.DoesNotExist:
+            return []
+        # get pages ordered by created
+        # distinct queries by created are a lot harder than you think
+        # keep the history short because we need python to calc distinct urls
+        # if someone could figure out how to get the db to do the lifting here
+        # please replace this
+        pages_viewed = CoursePageViewInstance.objects.filter(
+            course_view_instance=instance).order_by('-created')
+        return_list = []
+        used_urls = []
+        for page_viewed in pages_viewed:
+            if len(return_list) >= settings.LEFT_NAV_HISTORY_MAX:
+                break
+            if page_viewed.url not in used_urls:
+                used_urls.append(page_viewed.url)
+                return_list.append(page_viewed.as_dict)
+
+        return return_list
+
     @property
     def minimum_time(self):
         return human_time_duration(self.minimum_time_seconds)
@@ -278,6 +301,29 @@ class CoursePageViewInstance(BaseModel):
     course_test_question = models.ForeignKey('MultipleChoiceTestQuestion',
         null=True, on_delete=models.CASCADE, related_name="+")
     page_signature = models.CharField(max_length=200, blank=True, null=True)
+
+
+    @property
+    def as_dict(self):
+        d = {
+        'url':self.url,
+        'course_name':self.course_view_instance.course.name,
+        'title': 'Uncategorized Bookmark',
+        }
+        if self.course_page:
+            d['title'] = self.course_page.page_title
+        elif self.course_test_question:
+            d['title'] = '%s Test #%s - Question' % (
+                d['course_name'],
+                self.course_test_question.course_test.order
+            )
+        elif self.course_test:
+            d['title'] = '%s Test %s' % (
+                d['course_name'],
+                self.course_test.order
+            )
+
+        return d
 
 class CourseTest(BaseModel):
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
