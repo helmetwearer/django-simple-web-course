@@ -207,10 +207,16 @@ class Course(BaseModel):
         # please replace this
         pages_viewed = CoursePageViewInstance.objects.filter(
             course_view_instance=instance).order_by('-created')
+        # need this count for performance if setting gets high 
+        # or for low page instances with high views
+        unique_url_count = CoursePageViewInstance.objects.filter(
+            course_view_instance=instance).distinct('url').count()
+
+        break_length = min(unique_url_count, settings.LEFT_NAV_HISTORY_MAX)
         return_list = []
         used_urls = []
         for page_viewed in pages_viewed:
-            if len(return_list) >= settings.LEFT_NAV_HISTORY_MAX:
+            if len(return_list) >= break_length:
                 break
             if page_viewed.url not in used_urls:
                 used_urls.append(page_viewed.url)
