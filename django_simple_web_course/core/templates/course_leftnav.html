@@ -57,6 +57,9 @@
     var total_seconds = {{course_view_instance.read_time_remaining_seconds}} + 1;
     function update_time_display(){
         total_seconds = total_seconds - 1;
+        if (total_seconds < 0){
+            total_seconds = 0;
+        }
         var display_string = new Date(total_seconds * 1000).toISOString().substr(11, 8);
         document.getElementById("timer").innerHTML = display_string;
     }
