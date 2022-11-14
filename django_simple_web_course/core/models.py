@@ -347,7 +347,8 @@ class CoursePageViewInstance(BaseModel):
 
 @receiver(post_save, sender=CoursePageViewInstance, dispatch_uid="update_total_course_time")
 def update_total_course_time(sender, instance, **kwargs):
-    instance.course_view_instance.calculate_time_spent()
+    if instance.total_seconds_spent:
+        instance.course_view_instance.calculate_time_spent()
 
 class CourseTest(BaseModel):
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
