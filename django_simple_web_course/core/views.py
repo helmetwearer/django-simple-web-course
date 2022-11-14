@@ -97,6 +97,8 @@ def course_page_view(request, page_guid=None):
         'course_page': course_page,
         'course':course_page.course,
         'page_index_line':page_index_line,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 @student_login_required
@@ -110,6 +112,8 @@ def course_practice_test_home_view(request, test_guid=None):
         'student':request.student,
         'course_test': course_test,
         'course': course_test.course,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 
@@ -125,6 +129,8 @@ def course_practice_test_question_view(request, question_guid=None):
         'course_test_question': course_test_question,
         'course_test':course_test_question.course_test,
         'course':course_test_question.course_test.course,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 @student_login_required
@@ -138,6 +144,8 @@ def course_test_home_view(request, test_guid=None):
         'student':request.student,
         'course_test': course_test,
         'course': course_test.course,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 
@@ -153,6 +161,8 @@ def course_test_question_view(request, question_guid=None):
         'course_test_question': course_test_question,
         'course_test':course_test_question.course_test,
         'course':course_test_question.course_test.course,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 @student_login_required
@@ -165,6 +175,8 @@ def course_complete_view(request, course_guid=None):
     return render(request, 'course_complete.html', {
         'student': request.student,
         'course': course,
+        'course_view_instance':request.course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 

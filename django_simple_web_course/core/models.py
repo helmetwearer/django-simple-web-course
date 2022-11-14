@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -286,9 +287,22 @@ class CourseViewInstance(BaseModel):
     last_page_view = models.ForeignKey('CoursePageViewInstance', null=True, related_name="+",
         on_delete=models.CASCADE)
 
+    @property
+    def enforce_minimum_time(self):
+        return self.course.enforce_minimum_time
+
+    @property
+    def read_time_remaining_seconds(self):
+        return max((self.course.minimum_time_seconds - self.total_seconds_spent),0)
+
+    def calculate_time_spent(self):
+        time_spent_query = self.course_page_view_instances.aggregate(Sum('total_seconds_spent'))
+        self.total_seconds_spent = time_spent_query['total_seconds_spent__sum']
+        self.save()
+        return self.total_seconds_spent
+
     class Meta:
         unique_together = ('student', 'course',)
-
 
     def __str__(self):
         return '%s, %s' % (self.student.full_legal_name, self.course)
@@ -330,6 +344,10 @@ class CoursePageViewInstance(BaseModel):
             )
 
         return d
+
+@receiver(post_save, sender=CoursePageViewInstance, dispatch_uid="update_total_course_time")
+def update_total_course_time(sender, instance, **kwargs):
+    instance.course_view_instance.calculate_time_spent()
 
 class CourseTest(BaseModel):
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,

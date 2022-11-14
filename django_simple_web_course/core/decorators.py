@@ -90,9 +90,9 @@ def create_page_view_instance(request, student, course_obj, course_page, course_
 def page_tracking_enabled(function):
     def wrapper(request, *args, **kwargs):
         student, course_obj, course_page, course_test, test_question = get_tracking_models(request, *args, **kwargs)
-        course_view_instance = get_or_create_course_view_instance(student, course_obj)
-        page_view_instance = create_page_view_instance(request, student, course_obj, course_page,
-            course_test, test_question, course_view_instance)
+        request.course_view_instance = get_or_create_course_view_instance(student, course_obj)
+        request.page_view_instance = create_page_view_instance(request, student, course_obj, course_page,
+            course_test, test_question, request.course_view_instance)
 
         return function(request, *args, **kwargs)
 

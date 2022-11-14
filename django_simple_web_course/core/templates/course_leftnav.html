@@ -41,6 +41,29 @@
         </div>
     </div>
     {% endif %}
+    {% if course_view_instance and course_view_instance.enforce_minimum_time %}
+    <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Time Remaining:</h6>
+            <a id="timer" class="collapse-item" href="#"></a>
+        </div>
+    </div>
+    {% endif %}
     
 </li>
+{% block left_nav_js %}
+{% if course_view_instance and course_view_instance.enforce_minimum_time %}
+<script type="text/javascript">
+    var total_seconds = {{course_view_instance.read_time_remaining_seconds}} + 1;
+    function update_time_display(){
+        total_seconds = total_seconds - 1;
+        var display_string = new Date(total_seconds * 1000).toISOString().substr(11, 8);
+        document.getElementById("timer").innerHTML = display_string;
+    }
+    update_time_display(0);
+    setInterval(update_time_display,1000);
+</script>
+{% endif %}
+{% endblock %}
+
 
