@@ -181,10 +181,13 @@ class Course(BaseModel):
     maximum_idle_time_seconds = models.BigIntegerField(default=settings.MAX_COURSE_IDLE_TIME_SECONDS,
  		help_text='Maximum time spent with no inputs before user is considered AFK')
     published = models.BooleanField(default=False, help_text='Course is ready to appear on the home page')
+    practice_counts_for_time = models.BooleanField(default=True, 
+        help_text='Time spent on practice tests counts towards the minimum time')
     pages_require_signature = models.BooleanField(default=False,
         help_text='Each page will require the student sign that they viewed the page')
     page_signature_description = models.TextField(default='Your full name',
         help_text='If pages require signature, this field will describe the signature the student enters')
+
 
     def continue_url(self, student):
         try:
@@ -224,6 +227,10 @@ class Course(BaseModel):
                 return_list.append(page_viewed.as_dict)
 
         return return_list
+
+    @property
+    def live_tests(self):
+        return self.course_tests.filter(only_practice_test=False)
 
     @property
     def minimum_time(self):
@@ -320,7 +327,24 @@ class CoursePageViewInstance(BaseModel):
         related_name='+')
     course_test_question = models.ForeignKey('MultipleChoiceTestQuestion',
         null=True, on_delete=models.CASCADE, related_name="+")
+    course_test_instance = models.ForeignKey('CourseTestInstance', null=True, on_delete=models.CASCADE,
+        related_name='course_page_view_instances')
     page_signature = models.CharField(max_length=200, blank=True, null=True)
+    student = models.ForeignKey(Student, null=True, on_delete=models.CASCADE,
+        related_name='course_page_view_instances')
+
+    @property
+    def credit_page_view_time(self):
+        # function not finished paused to fix arch problem
+        if self.course_page:
+            return True
+        if self.course_view_instance.course.practice_counts_for_time:
+            test_obj = self.course_test
+            if self.course_test_question:
+                test_obj = self.course_test_question.course_test
+            if test_obj and test_obj:
+                return True
+        return False
 
 
     @property
@@ -354,7 +378,7 @@ class CourseTest(BaseModel):
     course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
         related_name='course_tests')
     order = models.IntegerField(default=1)
-    max_number_of_question = models.IntegerField(default=0,
+    max_number_of_questions = models.IntegerField(default=0,
         help_text='maximum number of questions to generate. 0 generates all available questions once.')
     test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
     maximum_time_seconds = models.BigIntegerField(default=settings.MAXIMUM_TEST_SECONDS_DEFAULT,
@@ -366,12 +390,31 @@ class CourseTest(BaseModel):
     is_course_fixed_answer_length = models.BooleanField(default=False,
  		help_text='If you want all answers in the test to have a fixed length')
     course_fixed_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
- 		help_text='The fixed length of the answers if "Is course fixed answer length" is checked')
+ 		help_text='''
+        The fixed length of the answers if "Is course fixed answer length" is checked.
+        0 generates all questions
+        ''')
     allow_practice_tests = models.BooleanField(default=True, help_text='Turn practice tests on or off')
-    only_practice_test = models.BooleanField(default=False, help_text='When turned on only test only counts for practice')
-    maximum_practice_tests = models.IntegerField(default=0, help_text='''
- 		Maximum number of practice tests. 0 is infinite. If you want 0 tests uncheck allow practice tests
- 	''')
+    only_practice_test = models.BooleanField(default=False, 
+        help_text='When turned on only test only counts for practice')
+    passing_percentage = models.IntegerField(default=60, help_text='The minimum percentage needed to pass')
+
+    objects = CourseTestManager()
+
+    @property
+    def number_of_available_questions(self):
+        # default max is the number of key relations
+        max_number_of_questions = self.multiple_choice_test_questions.count()
+        # 0 means length of test questions so we need to if
+        if self.max_number_of_questions:
+            max_number_of_questions = min(
+                max_number_of_questions, self.max_number_of_questions)
+        return max_number_of_questions
+
+    @property
+    def time_limit(self):
+        return human_time_duration(self.maximum_time_seconds)
+
 
     def __str__(self):
         return '%s %s' %(self.course.name, self.order)
@@ -382,9 +425,6 @@ class MultipleChoiceAnswer(BaseModel):
     # combo a and b or other combos needs design
     is_all_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean all of the above?')
     is_none_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean none of the above?')
-    # random generation define smaller set of questions for live tests or practice
-    is_live_only = models.BooleanField(default=False, help_text='This question is only for live tests')
-    is_practice_only = models.BooleanField(default=False, help_text='This question is only for practice tests')
 
     def __str__(self):
         return self.value
@@ -398,13 +438,28 @@ class MultipleChoiceTestQuestion(BaseModel):
     other_multiple_choice_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_tests',
         help_text='List of potential answers to appear in random generation')
     multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
-        help_text = 'Total number of answers that will appear in the questions generated')
+        help_text = 'Total number of answers that will appear in the questions generated. 0 generates all')
+
+    @property
+    def calculated_answer_length(self):
+        # +1 for correct answer
+        max_available = self.other_multiple_choice_answers.count() + 1
+        if self.course_test.is_course_fixed_answer_length:
+            if self.course_test.course_fixed_answer_length:
+                return min(max_available, self.course_test.course_fixed_answer_length)
+            return max_available
+        if self.multiple_choice_answer_length:
+            return min(max_available, self.multiple_choice_answer_length)
+        return max_available
 
     def __str__(self):
         return self.question_contents
 
 class CourseTestInstance(BaseModel):
     is_practice = models.BooleanField(default=False)
+    # build a retake of live test mechanic later
+    # if retake is linked, the newer test will be the foreign key
+    retake = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
     course_test = models.ForeignKey(CourseTest, null=True, on_delete=models.CASCADE,
         related_name='course_test_instances')
     student = models.ForeignKey(Student, null=True, on_delete=models.CASCADE,

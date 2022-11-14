@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
     CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion,
-    CourseViewInstance, CoursePageViewInstance)
+    CourseViewInstance, CoursePageViewInstance, CourseTestQuestionInstance)
 
 def student_login_required(function):
     def wrapper(request, *args, **kwargs):
@@ -52,12 +52,17 @@ def get_tracking_models(request, *args, **kwargs):
         course_test = CourseTest.objects.get(guid=kwargs['test_guid'])
     if 'question_guid' in kwargs:
         test_question = MultipleChoiceTestQuestion.objects.get(guid=kwargs['question_guid'])
+        course_test = test_question.course_test
+    if 'question_instance_guid' in kwargs:
+        test_question_instance = CourseTestQuestionInstance.objects.get(
+            guid=kwargs['question_instance_guid'])
+        test_question = test_question_instance.course_test_question
+        course_test = test_question_instance.course_test_instance.course_test
+
     if course_obj is None and course_page:
         course_obj = course_page.course
     if course_obj is None and course_test:
         course_obj = course_test.course
-    if course_obj is None and test_question:
-        course_obj = test_question.course_test.course
 
     return (student, course_obj, course_page, course_test, test_question)
 
@@ -78,7 +83,7 @@ def create_page_view_instance(request, student, course_obj, course_page, course_
     page_view_instance = CoursePageViewInstance.objects.create(url=request.path, 
         course_view_instance=course_view_instance, page_view_start=timezone.now(), 
         course_page=course_page, course_test=course_test, 
-        course_test_question=test_question)
+        course_test_question=test_question, student=student)
     page_view_instance.save()
     # add page view guid to session so middleware can mark it complete
     # even outside of page tracking

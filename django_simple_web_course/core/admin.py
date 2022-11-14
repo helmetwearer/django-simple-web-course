@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
 CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion,
- CoursePageMedia)
+ CoursePageMedia, CourseTestInstance, CourseTestQuestionInstance, CourseTestQuestionAnswerOption)
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext_lazy as _
 
@@ -61,21 +61,25 @@ admin.site.register(CoursePage, CoursePageAdmin)
 
 class CourseTestAdmin(admin.ModelAdmin):
     list_display = ('course', 'test_is_timed', 'maximum_time_seconds', 'is_course_fixed_answer_length',
-        'course_fixed_answer_length', 'order', 'allow_practice_tests', 'maximum_practice_tests')
+        'course_fixed_answer_length', 'order', 'allow_practice_tests')
 
 admin.site.register(CourseTest, CourseTestAdmin)
 
 class MultipleChoiceAnswerAdmin(admin.ModelAdmin):
-    list_display = ('value', 'is_live_only', 'is_practice_only')
+    list_display = ('value', )
 
 admin.site.register(MultipleChoiceAnswer, MultipleChoiceAnswerAdmin)
 
 class MultipleChoiceOtherAnswerInline(admin.TabularInline):
     model = MultipleChoiceTestQuestion.other_multiple_choice_answers.through
+    verbose_name = "Wrong answer option"
+    verbose_name_plural = "Wrong answer options"
 
 class MultipleChoiceTestQuestionAdmin(admin.ModelAdmin):
     list_display = ('course_test', 'question_contents', 'correct_multiple_choice_answer',
         'multiple_choice_answer_length', )
+    fields = ('course_test', 'question_contents', 'correct_multiple_choice_answer',
+        'multiple_choice_answer_length')
 
     inlines = (MultipleChoiceOtherAnswerInline, )
 
@@ -86,4 +90,6 @@ class CoursePageViewInstanceAdmin(admin.ModelAdmin):
 
 admin.site.register(CoursePageViewInstance,CoursePageViewInstanceAdmin)
 
-
+admin.site.register(CourseTestInstance, admin.ModelAdmin)
+admin.site.register(CourseTestQuestionInstance, admin.ModelAdmin)
+admin.site.register(CourseTestQuestionAnswerOption, admin.ModelAdmin)

@@ -17,6 +17,12 @@
 <p>You must spend at least {{course.minimum_time}} on the material presented within this course</p>
 {% endif %}
 
+{% if course.live_tests.count %}
+<h5><b>Test Requirement</b></h5>
+<p>There {% if course.course.live_tests.count > 1 %}are{% else %}is{% endif %} {{course.live_tests.count}} test{{course.live_tests.count|pluralize}} you must take
+to pass this course.</p>
+{% endif %}
+
 {% if course.description %}
 <h5><b>Course Description</b></h5>
 <p>{{course.description}}</p>

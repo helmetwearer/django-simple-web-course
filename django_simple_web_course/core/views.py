@@ -3,13 +3,14 @@ from .decorators import student_login_required, page_tracking_enabled
 from .forms import StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm
 from .models import (StudentIdentificationDocument, Student, Course, CoursePage, CoursePageMedia,
     CoursePageMedia, CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer,
-    MultipleChoiceTestQuestion)
+    MultipleChoiceTestQuestion, CourseTestQuestionInstance)
 from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from django.urls import reverse
 from .email_dispatchers import email_student_reverification, email_student_verification_complete
 import json
 
@@ -107,22 +108,56 @@ def course_practice_test_home_view(request, test_guid=None):
     if not test_guid:
         raise Http404
     course_test = CourseTest.objects.get(guid=test_guid)
+    course_test_instance = CourseTest.objects.get_or_generate_test_instance(course_test, request.student,
+        is_practice=True)
 
+    starting_question = course_test_instance.course_test_question_instances.order_by('order')[0]
+    starting_question_url = reverse('course_practice_test_question', 
+        kwargs={'question_instance_guid':starting_question.guid})
     return render(request, 'course_practice_test_home.html', {
         'student':request.student,
         'course_test': course_test,
         'course': course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
+        'beginning_url': starting_question_url,
     })
 
 
 @student_login_required
 @page_tracking_enabled
-def course_practice_test_question_view(request, question_guid=None):
-    if not question_guid:
+def course_practice_test_question_view(request, question_instance_guid=None):
+    if not question_instance_guid:
         raise Http404
-    course_test_question = MultipleChoiceTestQuestion.objects.get(guid=question_guid)
+    course_test_question_instance = CourseTestQuestionInstance.objects.get(guid=question_instance_guid)
+    course_test_question = course_test_question_instance.course_test_question
+    course_test_instance = CourseTest.objects.get_or_generate_test_instance(
+        course_test_question.course_test, request.student, is_practice=True)
+    if not course_test_instance.test_started_on:
+        course_test_instance.test_started_on = timezone.now()
+        course_test_instance.save()
+    question_instance = CourseTestQuestionInstance.objects.get(
+        course_test_question=course_test_question,
+        course_test_instance=course_test_instance)
+    question_number = question_instance.order
+    try:
+        previous_question = CourseTestQuestionInstance.objects.get(
+            course_test_instance=course_test_instance,
+            order=question_number-1)
+        previous_question_url = reverse('course_practice_test_question', 
+            kwargs={'question_instance_guid':previous_question.guid})
+    except CourseTestQuestionInstance.DoesNotExist:
+        previous_question = None
+        previous_question_url = ''
+    try:
+        next_question = CourseTestQuestionInstance.objects.get(
+            course_test_instance=course_test_instance,
+            order=question_number+1)
+        next_question_url = reverse('course_practice_test_question', 
+            kwargs={'question_instance_guid':next_question.guid})
+    except CourseTestQuestionInstance.DoesNotExist:
+        next_question = None
+        next_question_url = ''
 
     return render(request, 'course_practice_test_question.html', {
         'student':request.student,
@@ -131,6 +166,10 @@ def course_practice_test_question_view(request, question_guid=None):
         'course':course_test_question.course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
+        'next_question':next_question,
+        'next_question_url':next_question_url,
+        'previous_question':previous_question,
+        'previous_question_url':previous_question_url,
     })
 
 @student_login_required
@@ -151,10 +190,10 @@ def course_test_home_view(request, test_guid=None):
 
 @student_login_required
 @page_tracking_enabled
-def course_test_question_view(request, question_guid=None):
-    if not question_guid:
+def course_test_question_view(request, question_instance_guid=None):
+    if not question_instance_guid:
         raise Http404
-    course_test_question = MultipleChoiceTestQuestion.objects.get(guid=question_guid)
+    course_test_question = CourseTestQuestionInstance.objects.get(guid=question_instance_guid)
 
     return render(request, 'course_test_question.html', {
         'student':request.student,
