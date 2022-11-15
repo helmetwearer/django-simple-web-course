@@ -29,8 +29,16 @@ class BaseModel(models.Model):
     )
 
     @property
+    def model_class(self):
+        return type(self)
+
+    @property
     def get_manager(self):
-        return type(self)._default_manager
+        return self.model_class._default_manager
+
+    @property
+    def DoesNotExist(self):
+        return self.model_class.DoesNotExist
 
     @property
     def guid_string(self):
@@ -265,7 +273,36 @@ class CoursePage(BaseModel):
      	''')
     )
 
-    objects = CoursePageManager()
+    @property
+    def nav_page_split(self):
+        course_pages = self.course.course_pages.order_by('page_number')
+        total_pages = course_pages.count()
+        if  total_pages == 0:
+            return ''
+
+        guid_ordered_list = [ page.guid for page in course_pages]
+        page_index = guid_ordered_list.index(self.guid)
+        if total_pages <= 10:
+            page_indexing_obj = set(range(1, total_pages + 1))
+        else:
+            page_indexing_obj = (set(range(1, 4))
+                     | set(range(max(1, page_index - 1), min(page_index + 4, total_pages + 1)))
+                     | set(range(total_pages - 2, total_pages + 1)))
+
+        def display_at_index(index, guid_list, target_index):
+            tag_url = reverse('course_page', kwargs={'page_guid':guid_list[index-1]})
+            inner_tag = str(index) if index != target_index else '[ %s ]' % index
+            return '<div class="col"><a href="%s">%s</a></div>' % (tag_url, inner_tag)
+
+        # Display pages in order with ellipses
+        def display():
+            last_page = 0
+            for p in sorted(page_indexing_obj):
+                if p != last_page + 1: yield '<div class="col">...</div>'
+                yield display_at_index(p, guid_ordered_list, page_index+1)
+                last_page = p
+        display_columns = ' '.join(display())
+        return mark_safe('<div class="row page-navigation-bar">%s</div>' % display_columns)
 
     @property
     def course_url(self):
@@ -488,7 +525,7 @@ class CourseTestQuestionInstance(BaseModel):
                 return reverse(
                     'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
             return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
-        except type(self).DoesNotExist:
+        except self.DoesNotExist:
             return ''
 
     @property
@@ -500,7 +537,7 @@ class CourseTestQuestionInstance(BaseModel):
                 return reverse(
                     'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
             return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
-        except type(self).DoesNotExist:
+        except self.DoesNotExist:
             return ''
 
 

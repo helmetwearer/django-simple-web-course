@@ -92,12 +92,10 @@ def course_page_view(request, page_guid=None):
     if not page_guid:
         raise Http404
     course_page = CoursePage.objects.get(guid=page_guid)
-    page_index_line = CoursePage.objects.nav_page_split_for_course(course=course_page.course,page=course_page)
     return render(request, 'course_page.html', {
         'student':request.student,
         'course_page': course_page,
         'course':course_page.course,
-        'page_index_line':page_index_line,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
     })
