@@ -35,8 +35,8 @@ def student_login_required(function):
     return wrapper
 
 def get_tracking_models(request, *args, **kwargs):
-    student, course_obj, course_page, course_test, test_question = (None,
-        None, None, None, None)
+    student, course_obj, course_page, course_test, test_question, course_test_instance = (None,
+        None, None, None, None, None)
     
     student_id = request.session.get('student_id', None)
     if student_id:
@@ -56,15 +56,16 @@ def get_tracking_models(request, *args, **kwargs):
     if 'question_instance_guid' in kwargs:
         test_question_instance = CourseTestQuestionInstance.objects.get(
             guid=kwargs['question_instance_guid'])
+        course_test_instance = test_question_instance.course_test_instance
         test_question = test_question_instance.course_test_question
-        course_test = test_question_instance.course_test_instance.course_test
+        course_test = course_test_instance.course_test
 
     if course_obj is None and course_page:
         course_obj = course_page.course
     if course_obj is None and course_test:
         course_obj = course_test.course
 
-    return (student, course_obj, course_page, course_test, test_question)
+    return (student, course_obj, course_page, course_test, test_question, course_test_instance)
 
 def get_or_create_course_view_instance(student, course_obj):
     try:
@@ -79,11 +80,12 @@ def get_or_create_course_view_instance(student, course_obj):
     return course_view_instance
 
 def create_page_view_instance(request, student, course_obj, course_page, course_test,
- test_question, course_view_instance):
+ test_question, course_view_instance, course_test_instance):
     page_view_instance = CoursePageViewInstance.objects.create(url=request.path, 
         course_view_instance=course_view_instance, page_view_start=timezone.now(), 
         course_page=course_page, course_test=course_test, 
-        course_test_question=test_question, student=student)
+        course_test_question=test_question, student=student,
+        course_test_instance=course_test_instance)
     page_view_instance.save()
     # add page view guid to session so middleware can mark it complete
     # even outside of page tracking
@@ -94,10 +96,11 @@ def create_page_view_instance(request, student, course_obj, course_page, course_
 
 def page_tracking_enabled(function):
     def wrapper(request, *args, **kwargs):
-        student, course_obj, course_page, course_test, test_question = get_tracking_models(request, *args, **kwargs)
+        (student, course_obj, course_page, course_test, 
+            test_question, course_test_instance) = get_tracking_models(request, *args, **kwargs)
         request.course_view_instance = get_or_create_course_view_instance(student, course_obj)
         request.page_view_instance = create_page_view_instance(request, student, course_obj, course_page,
-            course_test, test_question, request.course_view_instance)
+            course_test, test_question, request.course_view_instance, course_test_instance)
 
         return function(request, *args, **kwargs)
 

@@ -390,6 +390,15 @@ class CoursePageViewInstance(BaseModel):
 
     @property
     def as_dict(self):
+        question_number = ''
+        if self.course_test_question and self.course_test_instance:
+            try:
+                # if this fails do nothing is fine
+                question_number = self.course_test_instance.course_test_question_instances.get(
+                    course_test_question=self.course_test_question).order
+            except Exception as e:
+                print(e)
+
         d = {
         'url':self.url,
         'course_name':self.course_view_instance.course.name,
@@ -398,9 +407,9 @@ class CoursePageViewInstance(BaseModel):
         if self.course_page:
             d['title'] = self.course_page.page_title
         elif self.course_test_question:
-            d['title'] = '%s Test #%s - Question' % (
-                d['course_name'],
-                self.course_test_question.course_test.order
+            d['title'] = 'Test #%s - Question %s' % (
+                self.course_test_question.course_test.order,
+                question_number
             )
         elif self.course_test:
             d['title'] = '%s Test %s' % (
@@ -435,6 +444,10 @@ class CourseTestQuestionAnswerOption(BaseModel):
         related_name='+')
     order = models.IntegerField(default=1)
 
+    @property
+    def value(self):
+        return self.answer_option.value
+
 class CourseTestQuestionAnswerInstance(BaseModel):
     question_instance = models.ForeignKey('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
         related_name='course_test_answer_instances')
@@ -448,6 +461,26 @@ class CourseTestQuestionInstance(BaseModel):
     course_test_question = models.ForeignKey('MultipleChoiceTestQuestion', null=True, 
         on_delete=models.CASCADE, related_name='+')
     order = models.IntegerField(default=1)
+
+    @property
+    def answer_options(self):
+        return self.course_test_answer_option_instances.order_by('order')
+
+    @property
+    def question_contents(self):
+        return self.course_test_question.question_contents
+
+    @property
+    def correct_multiple_choice_answer(self):
+        return self.course_test_question.correct_multiple_choice_answer
+
+    @property
+    def other_multiple_choice_answers(self):
+        return self.course_test_question.other_multiple_choice_answers.order_by('-created')
+
+    @property
+    def course_test(self):
+        return self.course_test_instance.course_test
 
     def create_answer_options(self):
         question_obj = self.course_test_question
@@ -511,8 +544,8 @@ class CourseTestQuestionInstance(BaseModel):
                 order=self.order-1)
             if self.course_test_instance.is_practice:
                 return reverse(
-                    'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
-            return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
+                    'course_practice_test_question', kwargs={'question_instance_guid':instance.guid})
+            return reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
         except self.DoesNotExist:
             return ''
 
@@ -523,8 +556,8 @@ class CourseTestQuestionInstance(BaseModel):
                 order=self.order+1)
             if self.course_test_instance.is_practice:
                 return reverse(
-                    'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
-            return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
+                    'course_practice_test_question', kwargs={'question_instance_guid':instance.guid})
+            return reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
         except self.DoesNotExist:
             return ''
 

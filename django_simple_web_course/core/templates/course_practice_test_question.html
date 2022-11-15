@@ -6,9 +6,43 @@
 {% endblock %}
 
 {% block content %}
+<div class="question_content overflow-auto">
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">{{question.question_contents}}</div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
+<div class="answer_form overflow-auto">
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<ul>
+			{% for answer in question.answer_options %}
+				<li>{{answer.value}}</li>
+			{% endfor %}
+			</ul>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
 
-{{question.previous_instance_url}}
 
-{{question.next_instance_url}}
-
+<div class="row">
+	<div class="col-2">
+		{% if question.previous_instance_url %}
+		<a class="btn btn-secondary" href="{{question.previous_instance_url}}">Previous Question</a>
+		{% endif %}
+	</div>
+	<div class="col-8"></div>
+	<div class="col-2">
+		{% if question.next_instance_url %}
+		<a class="btn btn-secondary" href="{{question.next_instance_url}}">Next Question</a>
+		{% endif %}
+	</div>
+</div>
 {% endblock %}
