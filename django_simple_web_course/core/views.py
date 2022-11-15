@@ -139,25 +139,6 @@ def course_practice_test_question_view(request, question_instance_guid=None):
     question_instance = CourseTestQuestionInstance.objects.get(
         course_test_question=course_test_question,
         course_test_instance=course_test_instance)
-    question_number = question_instance.order
-    try:
-        previous_question = CourseTestQuestionInstance.objects.get(
-            course_test_instance=course_test_instance,
-            order=question_number-1)
-        previous_question_url = reverse('course_practice_test_question', 
-            kwargs={'question_instance_guid':previous_question.guid})
-    except CourseTestQuestionInstance.DoesNotExist:
-        previous_question = None
-        previous_question_url = ''
-    try:
-        next_question = CourseTestQuestionInstance.objects.get(
-            course_test_instance=course_test_instance,
-            order=question_number+1)
-        next_question_url = reverse('course_practice_test_question', 
-            kwargs={'question_instance_guid':next_question.guid})
-    except CourseTestQuestionInstance.DoesNotExist:
-        next_question = None
-        next_question_url = ''
 
     return render(request, 'course_practice_test_question.html', {
         'student':request.student,
@@ -166,10 +147,7 @@ def course_practice_test_question_view(request, question_instance_guid=None):
         'course':course_test_question.course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
-        'next_question':next_question,
-        'next_question_url':next_question_url,
-        'previous_question':previous_question,
-        'previous_question_url':previous_question_url,
+        'question':question_instance,
     })
 
 @student_login_required

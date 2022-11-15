@@ -29,6 +29,10 @@ class BaseModel(models.Model):
     )
 
     @property
+    def get_manager(self):
+        return type(self)._default_manager
+
+    @property
     def guid_string(self):
         return str(self.guid)
 
@@ -474,6 +478,31 @@ class CourseTestQuestionInstance(BaseModel):
     course_test_question = models.ForeignKey(MultipleChoiceTestQuestion, null=True, 
         on_delete=models.CASCADE, related_name='+')
     order = models.IntegerField(default=1)
+
+    @property
+    def previous_instance_url(self):
+        try:
+            instance = self.get_manager.get(course_test_instance=self.course_test_instance, 
+                order=self.order-1)
+            if self.course_test_instance.is_practice:
+                return reverse(
+                    'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
+            return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
+        except type(self).DoesNotExist:
+            return ''
+
+    @property
+    def next_instance_url(self):
+        try:
+            instance = self.get_manager.get(course_test_instance=self.course_test_instance, 
+                order=self.order+1)
+            if self.course_test_instance.is_practice:
+                return reverse(
+                    'course_practice_test_question', kwargs={'question_instance_guid':self.guid})
+            return reverse('course_test_question', kwargs={'question_instance_guid':self.guid})
+        except type(self).DoesNotExist:
+            return ''
+
 
 class CourseTestQuestionAnswerOption(BaseModel):
     question_instance = models.ForeignKey(CourseTestQuestionInstance, null=True, on_delete=models.CASCADE,

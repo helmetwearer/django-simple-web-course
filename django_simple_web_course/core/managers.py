@@ -36,6 +36,22 @@ class StudentManager(models.Manager):
 
         return student
 
+class CourseTestQuestionInstanceManager(models.Manager):
+
+    def previous_instance(self, question_instance):
+        try:
+            return self.get(course_test_instance=question_instance.course_test_instance, 
+                order=question_instance.order-1)
+        except self.model.DoesNotExist:
+            return None
+
+    def next_instance(self, question_instance):
+        try:
+            return self.get(course_test_instance=question_instance.course_test_instance, 
+                order=question_instance.order+1)
+        except self.model.DoesNotExist:
+            return None
+
 class CourseTestManager(models.Manager):
 
     def create_answer_options_for_question_instance(self, question_instance):
