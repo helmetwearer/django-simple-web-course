@@ -154,7 +154,7 @@ class StudentIdentificationDocument(BaseModel):
 
     objects = StudentIdentificationDocumentManager()
 
-    student = models.ForeignKey(Student, null=False, on_delete=models.CASCADE,
+    student = models.ForeignKey('Student', null=False, on_delete=models.CASCADE,
         help_text="Student the document belongs to", related_name='student_identification_documents')
     document = models.FileField(upload_to='uploads/%Y/%m/%d/', blank=True,
         help_text="The file for the student's document")
@@ -261,7 +261,7 @@ class Course(BaseModel):
         return self.name
 
 class CoursePage(BaseModel):
-    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
+    course = models.ForeignKey('Course', null=True, on_delete=models.CASCADE,
         related_name='course_pages')
     page_number = models.IntegerField(default=1, help_text='Order of the page')
     page_title = models.CharField(max_length=200, help_text='Title of the page')
@@ -315,14 +315,14 @@ class CoursePage(BaseModel):
         return '%s %s %s' % (self.course.name, self.page_number, self.page_title)
 
 class CoursePageMedia(BaseModel):
-    course_page = models.ForeignKey(CoursePage, null=False, on_delete=models.CASCADE,
+    course_page = models.ForeignKey('CoursePage', null=False, on_delete=models.CASCADE,
         related_name='page_media')
     file = models.FileField(upload_to='pagemedia/%Y/%m/%d/')
 
 class CourseViewInstance(BaseModel):
-    student = models.ForeignKey(Student, null=True, on_delete=models.CASCADE,
+    student = models.ForeignKey('Student', null=True, on_delete=models.CASCADE,
         related_name='course_view_instances')
-    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
+    course = models.ForeignKey('Course', null=True, on_delete=models.CASCADE,
         related_name='course_view_instances')
     course_view_start = models.DateTimeField(null=True)
     course_view_stop = models.DateTimeField(null=True)
@@ -357,12 +357,12 @@ class CourseViewInstance(BaseModel):
 
 class CoursePageViewInstance(BaseModel):
     url = models.TextField(blank=True, default='')
-    course_view_instance = models.ForeignKey(CourseViewInstance, null=True, on_delete=models.CASCADE,
+    course_view_instance = models.ForeignKey('CourseViewInstance', null=True, on_delete=models.CASCADE,
         related_name='course_page_view_instances')
     page_view_start = models.DateTimeField(null=True)
     page_view_stop = models.DateTimeField(null=True)
     total_seconds_spent = models.BigIntegerField(default=0)
-    course_page = models.ForeignKey(CoursePage, null=True, on_delete=models.CASCADE,
+    course_page = models.ForeignKey('CoursePage', null=True, on_delete=models.CASCADE,
         related_name='+')
     course_test = models.ForeignKey('CourseTest', null=True, on_delete=models.CASCADE,
         related_name='+')
@@ -371,7 +371,7 @@ class CoursePageViewInstance(BaseModel):
     course_test_instance = models.ForeignKey('CourseTestInstance', null=True, on_delete=models.CASCADE,
         related_name='course_page_view_instances')
     page_signature = models.CharField(max_length=200, blank=True, null=True)
-    student = models.ForeignKey(Student, null=True, on_delete=models.CASCADE,
+    student = models.ForeignKey('Student', null=True, on_delete=models.CASCADE,
         related_name='course_page_view_instances')
 
     @property
@@ -415,106 +415,94 @@ def update_total_course_time(sender, instance, **kwargs):
     if instance.total_seconds_spent:
         instance.course_view_instance.calculate_time_spent()
 
-class CourseTest(BaseModel):
-    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE,
-        related_name='course_tests')
-    order = models.IntegerField(default=1)
-    max_number_of_questions = models.IntegerField(default=0,
-        help_text='maximum number of questions to generate. 0 generates all available questions once.')
-    test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
-    maximum_time_seconds = models.BigIntegerField(default=settings.MAXIMUM_TEST_SECONDS_DEFAULT,
- 		help_text='''
- 		The maximum time a user has on the test. All selected answers before this
- 		time has passed will be recorded so incomplete tests will still have saved
- 		the answers so far. "Test is timed" must be checked
- 		''')
-    is_course_fixed_answer_length = models.BooleanField(default=False,
- 		help_text='If you want all answers in the test to have a fixed length')
-    course_fixed_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
- 		help_text='''
-        The fixed length of the answers if "Is course fixed answer length" is checked.
-        0 generates all questions
-        ''')
-    allow_practice_tests = models.BooleanField(default=True, help_text='Turn practice tests on or off')
-    only_practice_test = models.BooleanField(default=False, 
-        help_text='When turned on only test only counts for practice')
-    passing_percentage = models.IntegerField(default=60, help_text='The minimum percentage needed to pass')
-
-    objects = CourseTestManager()
-
-    @property
-    def number_of_available_questions(self):
-        # default max is the number of key relations
-        max_number_of_questions = self.multiple_choice_test_questions.count()
-        # 0 means length of test questions so we need to if
-        if self.max_number_of_questions:
-            max_number_of_questions = min(
-                max_number_of_questions, self.max_number_of_questions)
-        return max_number_of_questions
-
-    @property
-    def time_limit(self):
-        return human_time_duration(self.maximum_time_seconds)
-
-
-    def __str__(self):
-        return '%s %s' %(self.course.name, self.order)
-
-class MultipleChoiceAnswer(BaseModel):
-    value = models.CharField(max_length=300, help_text='What shows up on the multiple choice answer')
-    # used for random generation ordering
-    # combo a and b or other combos needs design
-    is_all_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean all of the above?')
-    is_none_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean none of the above?')
-
-    def __str__(self):
-        return self.value
-
-class MultipleChoiceTestQuestion(BaseModel):
-    course_test = models.ForeignKey(CourseTest, null=True, on_delete=models.CASCADE,
-        related_name='multiple_choice_test_questions')
-    question_contents = models.TextField(default='', help_text='what the question will say')
-    correct_multiple_choice_answer = models.ForeignKey(MultipleChoiceAnswer, null=True,
-        on_delete=models.CASCADE, related_name='multiple_choice_test_questions')
-    other_multiple_choice_answers = models.ManyToManyField(MultipleChoiceAnswer, related_name='course_tests',
-        help_text='List of potential answers to appear in random generation')
-    multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
-        help_text = 'Total number of answers that will appear in the questions generated. 0 generates all')
-
-    @property
-    def calculated_answer_length(self):
-        # +1 for correct answer
-        max_available = self.other_multiple_choice_answers.count() + 1
-        if self.course_test.is_course_fixed_answer_length:
-            if self.course_test.course_fixed_answer_length:
-                return min(max_available, self.course_test.course_fixed_answer_length)
-            return max_available
-        if self.multiple_choice_answer_length:
-            return min(max_available, self.multiple_choice_answer_length)
-        return max_available
-
-    def __str__(self):
-        return self.question_contents
-
 class CourseTestInstance(BaseModel):
     is_practice = models.BooleanField(default=False)
     # build a retake of live test mechanic later
     # if retake is linked, the newer test will be the foreign key
     retake = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True)
-    course_test = models.ForeignKey(CourseTest, null=True, on_delete=models.CASCADE,
+    course_test = models.ForeignKey('CourseTest', null=True, on_delete=models.CASCADE,
         related_name='course_test_instances')
-    student = models.ForeignKey(Student, null=True, on_delete=models.CASCADE,
+    student = models.ForeignKey('Student', null=True, on_delete=models.CASCADE,
         related_name='course_test_instances')
     test_started_on = models.DateTimeField(null=True)
     test_finished_on = models.DateTimeField(null=True)
-    available_questions = models.ManyToManyField(MultipleChoiceTestQuestion, related_name='course_test_instances')    
+    available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')    
+
+class CourseTestQuestionAnswerOption(BaseModel):
+    question_instance = models.ForeignKey('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
+        related_name='course_test_answer_option_instances')
+    answer_option = models.ForeignKey('MultipleChoiceAnswer', null=True, on_delete=models.CASCADE,
+        related_name='+')
+    order = models.IntegerField(default=1)
+
+class CourseTestQuestionAnswerInstance(BaseModel):
+    question_instance = models.ForeignKey('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
+        related_name='course_test_answer_instances')
+    answer_chosen = models.ForeignKey('MultipleChoiceAnswer', null=True, on_delete=models.CASCADE,
+        related_name='course_test_answer_instances')
+    answer_chosen_on = models.DateTimeField(null=True)
 
 class CourseTestQuestionInstance(BaseModel):
-    course_test_instance = models.ForeignKey(CourseTestInstance, null=True, on_delete=models.CASCADE,
+    course_test_instance = models.ForeignKey('CourseTestInstance', null=True, on_delete=models.CASCADE,
         related_name='course_test_question_instances')
-    course_test_question = models.ForeignKey(MultipleChoiceTestQuestion, null=True, 
+    course_test_question = models.ForeignKey('MultipleChoiceTestQuestion', null=True, 
         on_delete=models.CASCADE, related_name='+')
     order = models.IntegerField(default=1)
+
+    def create_answer_options(self):
+        question_obj = self.course_test_question
+        answer_length = question_obj.calculated_answer_length
+        # no answers in the pool, can't create
+        if answer_length <= 1:
+            return None
+
+        incorrect_answer_indexes_added = []
+        order_keys_used = []
+        # this structure exists to help random index placement
+        answer_order_key = {i:None for i in range(0,answer_length)}
+        correct_answer_placement_index = randrange(0, answer_length)
+        order_keys_used.append(correct_answer_placement_index)
+        answer_order_key[correct_answer_placement_index] = question_obj.correct_multiple_choice_answer
+        
+        wrong_answers = question_obj.other_multiple_choice_answers.order_by('-created')
+        while len(incorrect_answer_indexes_added) < answer_length -1:
+            # get an unused order key to place an answer
+            random_order_key = randrange(0, answer_length)
+            while random_order_key in order_keys_used:
+                random_order_key = randrange(0, answer_length)
+            order_keys_used.append(random_order_key)
+            # get an unused wrong answer index
+            wrong_answer_index = randrange(0, wrong_answers.count())
+            while wrong_answer_index in incorrect_answer_indexes_added:
+                 wrong_answer_index = randrange(0, wrong_answers.count())
+            incorrect_answer_indexes_added.append(wrong_answer_index)
+            # make structure assignment
+            answer_order_key[random_order_key] = wrong_answers[wrong_answer_index]
+        # now that we've filled the dict create a list comprehension
+        # excluding none of the above and all the above answers
+
+        answer_list = [
+            answer_order_key[key] for key in range(0,answer_length)
+            if (not(answer_order_key[key].is_all_of_the_above) 
+                and not(answer_order_key[key].is_none_of_the_above))
+        ]
+        # now we add a list only including none or all the aboves
+        none_all_list = [
+            answer_order_key[key] for key in range(0,answer_length)
+            if (answer_order_key[key].is_all_of_the_above
+                or answer_order_key[key].is_none_of_the_above)
+        ]
+        # we finally have all answers ordered, create the list
+        final_list = answer_list + none_all_list
+        for order, answer in enumerate(final_list):
+            new_option = CourseTestQuestionAnswerOption.objects.create(
+                question_instance=self,
+                answer_option=answer,
+                order=order
+            )
+            new_option.save()
+
+        return final_list
 
     @property
     def previous_instance_url(self):
@@ -540,18 +528,127 @@ class CourseTestQuestionInstance(BaseModel):
         except self.DoesNotExist:
             return ''
 
-
-class CourseTestQuestionAnswerOption(BaseModel):
-    question_instance = models.ForeignKey(CourseTestQuestionInstance, null=True, on_delete=models.CASCADE,
-        related_name='course_test_answer_option_instances')
-    answer_option = models.ForeignKey(MultipleChoiceAnswer, null=True, on_delete=models.CASCADE,
-        related_name='+')
+class CourseTest(BaseModel):
+    course = models.ForeignKey('Course', null=True, on_delete=models.CASCADE,
+        related_name='course_tests')
     order = models.IntegerField(default=1)
+    max_number_of_questions = models.IntegerField(default=0,
+        help_text='maximum number of questions to generate. 0 generates all available questions once.')
+    test_is_timed = models.BooleanField(default=False, help_text='Is the test timed?')
+    maximum_time_seconds = models.BigIntegerField(default=settings.MAXIMUM_TEST_SECONDS_DEFAULT,
+ 		help_text='''
+ 		The maximum time a user has on the test. All selected answers before this
+ 		time has passed will be recorded so incomplete tests will still have saved
+ 		the answers so far. "Test is timed" must be checked
+ 		''')
+    is_course_fixed_answer_length = models.BooleanField(default=False,
+ 		help_text='If you want all answers in the test to have a fixed length')
+    course_fixed_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
+ 		help_text='''
+        The fixed length of the answers if "Is course fixed answer length" is checked.
+        0 generates all questions
+        ''')
+    allow_practice_tests = models.BooleanField(default=True, help_text='Turn practice tests on or off')
+    only_practice_test = models.BooleanField(default=False, 
+        help_text='When turned on only test only counts for practice')
+    passing_percentage = models.IntegerField(default=60, help_text='The minimum percentage needed to pass')
 
-class CourseTestQuestionAnswerInstance(BaseModel):
-    question_instance = models.ForeignKey(CourseTestQuestionInstance, null=True, on_delete=models.CASCADE,
-        related_name='course_test_answer_instances')
-    answer_chosen = models.ForeignKey(MultipleChoiceAnswer, null=True, on_delete=models.CASCADE,
-        related_name='course_test_answer_instances')
-    answer_chosen_on = models.DateTimeField(null=True)
+    @property
+    def number_of_available_questions(self):
+        # default max is the number of key relations
+        max_number_of_questions = self.multiple_choice_test_questions.count()
+        # 0 means length of test questions so we need to if
+        if self.max_number_of_questions:
+            max_number_of_questions = min(
+                max_number_of_questions, self.max_number_of_questions)
+        return max_number_of_questions
+
+    @property
+    def time_limit(self):
+        return human_time_duration(self.maximum_time_seconds)
+
+    def get_or_generate_test_instance_for_student(self, student, is_practice=False):
+        from .models import CourseTestInstance, CourseTestQuestionInstance
+        #look for an existing active test and return if relevant
+        # we generate new practice tests after old ones are finished
+        if is_practice:
+            active_tests = self.course_test_instances.filter(student=student, 
+                test_finished_on__isnull=True, is_practice=is_practice)
+        # live test. Cannot have a retake marked, return completed tests as well
+        # return of a completed test will mean inability to take a new one
+        else:
+            active_tests = self.course_test_instances.filter(student=student,
+                is_practice=is_practice, retake__isnull=True)
+        if active_tests.count() > 0:
+            return active_tests[0]
+
+        # no active tests found, generate one
+        number_of_available_questions = self.number_of_available_questions
+        # we can only generate if we have questions
+        if number_of_available_questions > 0:
+            new_test_instance = CourseTestInstance.objects.create(is_practice=is_practice,
+                course_test=self, student=student)
+            new_test_instance.save()
+            # generate the questions
+            
+            available_questions = self.multiple_choice_test_questions.order_by('-created')
+            indexes_added = []
+            while len(indexes_added) < number_of_available_questions:
+                random_index = randrange(0, number_of_available_questions)
+                while random_index in indexes_added:
+                    random_index = randrange(0, number_of_available_questions)
+                indexes_added.append(random_index)
+                random_question = available_questions[random_index]
+                new_question = CourseTestQuestionInstance.objects.create(
+                    course_test_instance=new_test_instance,
+                    course_test_question=random_question,
+                    order=len(indexes_added))
+                new_question.save()
+                new_question.create_answer_options()
+
+            return new_test_instance
+
+        return None
+
+
+    def __str__(self):
+        return '%s %s' %(self.course.name, self.order)
+
+class MultipleChoiceAnswer(BaseModel):
+    value = models.CharField(max_length=300, help_text='What shows up on the multiple choice answer')
+    # used for random generation ordering
+    # combo a and b or other combos needs design
+    is_all_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean all of the above?')
+    is_none_of_the_above = models.BooleanField(default=False, help_text='Does this answer mean none of the above?')
+
+    def __str__(self):
+        return self.value
+
+class MultipleChoiceTestQuestion(BaseModel):
+    course_test = models.ForeignKey('CourseTest', null=True, on_delete=models.CASCADE,
+        related_name='multiple_choice_test_questions')
+    question_contents = models.TextField(default='', help_text='what the question will say')
+    correct_multiple_choice_answer = models.ForeignKey('MultipleChoiceAnswer', null=True,
+        on_delete=models.CASCADE, related_name='multiple_choice_test_questions')
+    other_multiple_choice_answers = models.ManyToManyField('MultipleChoiceAnswer', related_name='course_tests',
+        help_text='List of potential answers to appear in random generation')
+    multiple_choice_answer_length = models.IntegerField(default=settings.DEFAULT_MULTIPLE_CHOICE_LENGTH,
+        help_text = 'Total number of answers that will appear in the questions generated. 0 generates all')
+
+    @property
+    def calculated_answer_length(self):
+        # +1 for correct answer
+        max_available = self.other_multiple_choice_answers.count() + 1
+        if self.course_test.is_course_fixed_answer_length:
+            if self.course_test.course_fixed_answer_length:
+                return min(max_available, self.course_test.course_fixed_answer_length)
+            return max_available
+        if self.multiple_choice_answer_length:
+            return min(max_available, self.multiple_choice_answer_length)
+        return max_available
+
+    def __str__(self):
+        return self.question_contents
+
+
 

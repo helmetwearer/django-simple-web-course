@@ -106,7 +106,7 @@ def course_practice_test_home_view(request, test_guid=None):
     if not test_guid:
         raise Http404
     course_test = CourseTest.objects.get(guid=test_guid)
-    course_test_instance = CourseTest.objects.get_or_generate_test_instance(course_test, request.student,
+    course_test_instance = course_test.get_or_generate_test_instance_for_student(request.student,
         is_practice=True)
 
     starting_question = course_test_instance.course_test_question_instances.order_by('order')[0]
@@ -128,24 +128,19 @@ def course_practice_test_question_view(request, question_instance_guid=None):
     if not question_instance_guid:
         raise Http404
     course_test_question_instance = CourseTestQuestionInstance.objects.get(guid=question_instance_guid)
-    course_test_question = course_test_question_instance.course_test_question
-    course_test_instance = CourseTest.objects.get_or_generate_test_instance(
-        course_test_question.course_test, request.student, is_practice=True)
+    course_test_instance = course_test_question_instance.course_test_instance
     if not course_test_instance.test_started_on:
         course_test_instance.test_started_on = timezone.now()
         course_test_instance.save()
-    question_instance = CourseTestQuestionInstance.objects.get(
-        course_test_question=course_test_question,
-        course_test_instance=course_test_instance)
 
     return render(request, 'course_practice_test_question.html', {
         'student':request.student,
-        'course_test_question': course_test_question,
-        'course_test':course_test_question.course_test,
-        'course':course_test_question.course_test.course,
+        'course_test_question': course_test_question_instance.course_test_question,
+        'course_test':course_test_instance.course_test,
+        'course':course_test_instance.course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
-        'question':question_instance,
+        'question':course_test_question_instance,
     })
 
 @student_login_required
