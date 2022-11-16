@@ -20,16 +20,20 @@
 		<div class="col-2">
 		</div>
 		<div class="col-8">
-			<ul>
-			{% for answer in question.answer_options %}
-				<li>{{answer.value}}</li>
-			{% endfor %}
-			</ul>
+			<form method="POST" action=".">
+				{% csrf_token %}
+				{{question.question_form}}
+				<input type="submit" class="btn btn-primary">
+			</form>
 		</div>
 		<div class="col-2">
 		</div>
 	</div>
 </div>
+
+{% if question.answer_instance %}
+{{question.answer_instance.value}}
+{% endif %}
 
 
 <div class="row">

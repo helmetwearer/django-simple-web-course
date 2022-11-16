@@ -449,11 +449,15 @@ class CourseTestQuestionAnswerOption(BaseModel):
         return self.answer_option.value
 
 class CourseTestQuestionAnswerInstance(BaseModel):
-    question_instance = models.ForeignKey('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
-        related_name='course_test_answer_instances')
+    question_instance = models.OneToOneField('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
+        related_name='course_test_answer_instance')
     answer_chosen = models.ForeignKey('MultipleChoiceAnswer', null=True, on_delete=models.CASCADE,
         related_name='course_test_answer_instances')
     answer_chosen_on = models.DateTimeField(null=True)
+
+    @property
+    def value(self):
+        return self.answer_chosen.value
 
 class CourseTestQuestionInstance(BaseModel):
     course_test_instance = models.ForeignKey('CourseTestInstance', null=True, on_delete=models.CASCADE,
@@ -461,6 +465,27 @@ class CourseTestQuestionInstance(BaseModel):
     course_test_question = models.ForeignKey('MultipleChoiceTestQuestion', null=True, 
         on_delete=models.CASCADE, related_name='+')
     order = models.IntegerField(default=1)
+
+    @property
+    def answer_instance(self):
+        try:
+            return self.course_test_answer_instance
+        except CourseTestQuestionAnswerInstance.DoesNotExist:
+            return None
+
+    def choose_answer(self, answer_chosen):
+        answer_instance = CourseTestQuestionAnswerInstance.objects.create(
+            question_instance=self,
+            answer_chosen=answer_chosen,
+            answer_chosen_on=timezone.now()
+        )
+        answer_instance.save()
+        return answer_instance
+
+    @property
+    def question_form(self):
+        from core.forms import TestQuestionInstanceForm
+        return TestQuestionInstanceForm(question_instance=self)
 
     @property
     def answer_options(self):

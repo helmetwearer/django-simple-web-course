@@ -1,18 +1,48 @@
-from django.forms import Form, ModelForm, HiddenInput
 from django import forms
 from .models import (Student, StudentIdentificationDocument, Course, CoursePage,
-    CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion)
+    CoursePageMedia, CourseTest, MultipleChoiceAnswer, MultipleChoiceTestQuestion, 
+    CourseTestQuestionAnswerOption)
 from django.utils.safestring import mark_safe
 from intl_tel_input.widgets import IntlTelInputWidget
+from django.core.exceptions import ValidationError
+from uuid import UUID
 
 
-class StudentVerificationForm(Form):
+def is_valid_uuid(uuid_to_test, version=4):
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuid_to_test
+
+class StudentVerificationForm(forms.Form):
     VERIFIED_CHOICES = [('R','Rejected'),('A','Approved')]
     verified = forms.CharField(label='Verification', widget=forms.RadioSelect(choices=VERIFIED_CHOICES))
     student_note = forms.CharField(label='(Optional) Note to student',
         widget=forms.Textarea(), required=False)
 
-class StudentProfileForm(ModelForm):
+class TestQuestionInstanceForm(forms.Form):
+    answer = forms.CharField()
+
+    def __init__(self, *args, **kwargs):
+        question_instance = kwargs.pop('question_instance')
+        retval = super(TestQuestionInstanceForm, self).__init__(*args, **kwargs)
+        CHOICES = [(answer.guid,answer.value) for answer in question_instance.answer_options ]
+        self.fields['answer']=forms.CharField(label='', widget=forms.RadioSelect(choices=CHOICES))
+
+    def clean_answer(self):
+        guid = self.cleaned_data['answer']
+        if not is_valid_uuid(guid):
+            raise ValidationError("Invalid multiple choice answer")
+        # valid uuid safe to look up
+        try:
+            answer_option = CourseTestQuestionAnswerOption.objects.get(guid=guid)
+        except CourseTestQuestionAnswerOption.DoesNotExist:
+            raise ValidationError("Invalid multiple choice answer")
+        return answer_option.answer_option
+        
+
+class StudentProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         retval = super(StudentProfileForm, self).__init__(*args, **kwargs)
@@ -51,12 +81,12 @@ class StudentProfileForm(ModelForm):
 
 
 
-class StudentIdentificationDocumentForm(ModelForm):
+class StudentIdentificationDocumentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         retval = super(StudentIdentificationDocumentForm, self).__init__(*args, **kwargs)
-        self.fields['document_title'].widget = HiddenInput()
-        self.fields['document_description'].widget = HiddenInput()
+        self.fields['document_title'].widget = forms.HiddenInput()
+        self.fields['document_description'].widget = forms.HiddenInput()
         if self.instance and self.instance.verified:
             self.fields['document'].disabled = True
 

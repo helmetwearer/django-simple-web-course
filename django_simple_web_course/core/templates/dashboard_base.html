@@ -46,9 +46,6 @@
 
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
-            <div class="sidebar-heading">
-                Quick Links
-            </div>
             <!-- Nav Item - Dashboard -->
             <li class="nav-item {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
                 {% if request.student and request.student.is_verified %}
