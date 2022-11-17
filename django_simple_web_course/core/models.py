@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.safestring import mark_safe
+from django.db.models import F, Q
 from .managers import *
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -437,6 +438,61 @@ class CourseTestInstance(BaseModel):
     test_finished_on = models.DateTimeField(null=True)
     available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')    
 
+    @property
+    def passing_percentage(self):
+        return self.course_test.passing_percentage
+
+    @property
+    def is_complete(self):
+        if self.has_time_expired:
+            return True
+        if (not self.test_started_on) or (self.course_test.number_of_available_questions > 
+            self.course_test_question_instances.count()):
+            return False
+        complete = self.course_test_question_instances.count() == self.course_test_question_instances.filter(
+            course_test_answer_instance__isnull=False).count()
+        if complete and not self.test_finished_on:
+            self.test_finished_on = timezone.now()
+            self.save()
+        return complete
+
+    @property
+    def has_time_expired(self):
+        if self.test_finished_on:
+            return True
+        if not self.course_test.test_is_timed:
+            return False
+        if ((self.test_started_on) and (self.test_started_on + timezone.timedelta(
+            seconds=self.maximum_time_seconds) < timezone.now())):
+            self.test_finished_on = timezone.now()
+            self.save()
+            return True
+        return False
+
+
+    @property
+    def maximum_time_seconds(self):
+        return self.course_test.maximum_time_seconds
+
+    @property
+    def number_of_correct_answers(self):
+        return self.course_test_question_instances.filter(
+            course_test_question__correct_multiple_choice_answer=F('course_test_answer_instance__answer_chosen')
+            ).count()
+
+    @property
+    def total_number_of_questions(self):
+        return self.course_test_question_instances.count()
+
+    @property
+    def test_score_percent(self):
+        return float('{0:.2f}'.format(
+            self.number_of_correct_answers / self.total_number_of_questions * 100))
+
+    @property
+    def test_passed(self):
+        return self.test_score_percent >= self.passing_percentage
+
 class CourseTestQuestionAnswerOption(BaseModel):
     question_instance = models.ForeignKey('CourseTestQuestionInstance', null=True, on_delete=models.CASCADE,
         related_name='course_test_answer_option_instances')
@@ -478,6 +534,9 @@ class CourseTestQuestionInstance(BaseModel):
             return None
 
     def choose_answer(self, answer_chosen):
+        # clock is up, deny the answer
+        if self.course_test_instance.has_time_expired:
+            return None
         answer_instance = CourseTestQuestionAnswerInstance.objects.create(
             question_instance=self,
             answer_chosen=answer_chosen,
@@ -619,7 +678,7 @@ class CourseTest(BaseModel):
     def number_of_available_questions(self):
         # default max is the number of key relations
         max_number_of_questions = self.multiple_choice_test_questions.count()
-        # 0 means length of test questions so we need to if
+        # 0 means length of test questions
         if self.max_number_of_questions:
             max_number_of_questions = min(
                 max_number_of_questions, self.max_number_of_questions)

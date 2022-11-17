@@ -1,0 +1,38 @@
+{% extends "dashboard_base.html" %}
+{% load i18n %}
+
+{% block extra_left_nav %}
+{% include 'course_leftnav.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="question_content overflow-auto text-center">
+	<h2><b>{% if instance.is_practice %}Practice {% endif %}Test {{instance.course_test.order}}</b></h2>
+	<hr/>
+	<div class="row">
+		<div class="col-2"><p>Final Score</p></div>
+		<div class="col-4">{{instance.number_of_correct_answers}} correct out of {{instance.total_number_of_questions}} questions</div>
+		<div class="col-4">{{instance.test_score_percent}}%</div>
+		<div class="col-2">
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-2"></div>
+		<div class="col-8">
+			{% if instance.test_passed %}
+			<div class="alert alert-success" role="alert">
+			  <i class="fa-regular fa-face-grin-beam"></i> You got a passing score!
+			</div>
+			{% else %}
+			<div class="alert alert-danger" role="alert">
+			  <i class="fa-regular fa-face-frown-open"></i> Unfortunately you did not pass
+			</div>
+			{% endif %}
+		</div>
+		<div class="col-2"></div>
+	</div>
+</div>
+<hr/>
+
+{% endblock %}

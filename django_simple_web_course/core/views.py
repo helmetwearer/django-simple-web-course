@@ -6,7 +6,7 @@ from .forms import (StudentProfileForm, StudentIdentificationDocumentForm, Stude
 
 from .models import (StudentIdentificationDocument, Student, Course, CoursePage, CoursePageMedia,
     CoursePageMedia, CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer,
-    MultipleChoiceTestQuestion, CourseTestQuestionInstance)
+    MultipleChoiceTestQuestion, CourseTestQuestionInstance, CourseTestInstance)
 from django.http import HttpResponseRedirect, Http404
 from django.conf import settings
 from django.contrib import messages
@@ -124,6 +124,19 @@ def course_practice_test_home_view(request, test_guid=None):
         'beginning_url': starting_question_url,
     })
 
+@student_login_required
+def test_final_score_view(request, test_instance_guid=None):
+    if not test_instance_guid:
+        raise Http404
+
+    course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
+
+    return render(request, 'test_final_score.html', {
+        'student':request.student,
+        'course_test':course_test_instance.course_test,
+        'course':course_test_instance.course_test.course,
+        'instance':course_test_instance,
+    })
 
 @student_login_required
 @page_tracking_enabled

@@ -28,7 +28,6 @@
 			<h5><b>Your answer:</b> {{question.answer_instance.value}}</h5>
 			<h5><b>Correct answer:</b> {{question.correct_multiple_choice_answer}}</h5>
 			{% if question.answer_instance.is_correct %}
-
 			<div class="alert alert-success" role="alert">
 			  <i class="fa-regular fa-face-grin-beam"></i> You got this question correct!
 			  {% if question.next_instance_url %}<a href="{{question.next_instance_url}}" class="alert-link">Next Question</a>{% endif %}
@@ -71,7 +70,15 @@
 		<a class="btn btn-secondary" href="{{question.previous_instance_url}}">Previous Question</a>
 		{% endif %}
 	</div>
-	<div class="col-8"></div>
+	<div class="col-3"></div>
+	<div class="col-2">
+		{% if question.course_test_instance.is_complete %}
+		<a class="btn btn-success" href="{% url 'test_final_score' test_instance_guid=question.course_test_instance.guid %}">
+			 Final Score
+		</a>
+		{% endif %}
+	</div>
+	<div class="col-3"></div>
 	<div class="col-2">
 		{% if question.next_instance_url %}
 		<a class="btn btn-secondary" href="{{question.next_instance_url}}">Next Question</a>

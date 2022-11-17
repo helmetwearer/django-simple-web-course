@@ -24,4 +24,6 @@ urlpatterns = [
         views.course_test_question_view, name='course_test_question'),
     re_path(r'^course_complete/(?P<course_guid>[a-zA-Z0-9_-]+)/$',
         views.course_complete_view, name='course_complete'),
+    re_path(r'^course_test_final_score/(?P<test_instance_guid>[a-zA-Z0-9_-]+)/$',
+        views.test_final_score_view, name='test_final_score'),
 ]
