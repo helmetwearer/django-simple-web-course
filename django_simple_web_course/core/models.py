@@ -459,6 +459,10 @@ class CourseTestQuestionAnswerInstance(BaseModel):
     def value(self):
         return self.answer_chosen.value
 
+    @property
+    def is_correct(self):
+        return self.answer_chosen == self.question_instance.correct_multiple_choice_answer
+
 class CourseTestQuestionInstance(BaseModel):
     course_test_instance = models.ForeignKey('CourseTestInstance', null=True, on_delete=models.CASCADE,
         related_name='course_test_question_instances')
