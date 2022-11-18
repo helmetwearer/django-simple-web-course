@@ -33,6 +33,16 @@
   max-height: 30vh;
 }
 
+.question_comments {
+  min-height: 15vh;
+  max-height: 15vh;
+}
+
+.answer_recap {
+  min-height: 15vh;
+  max-height: 15vh;
+}
+
 .page-navigation-bar {
   background-color: white;
   padding-top: 5vh;

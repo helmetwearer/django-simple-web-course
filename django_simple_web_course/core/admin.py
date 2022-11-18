@@ -78,8 +78,8 @@ class MultipleChoiceOtherAnswerInline(admin.TabularInline):
 class MultipleChoiceTestQuestionAdmin(admin.ModelAdmin):
     list_display = ('course_test', 'question_contents', 'correct_multiple_choice_answer',
         'multiple_choice_answer_length', )
-    fields = ('course_test', 'question_contents', 'correct_multiple_choice_answer',
-        'multiple_choice_answer_length')
+    fields = ('course_test', 'question_contents', 'question_post_answer_comments',
+        'correct_multiple_choice_answer', 'multiple_choice_answer_length')
 
     inlines = (MultipleChoiceOtherAnswerInline, )
 

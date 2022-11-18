@@ -551,6 +551,14 @@ class CourseTestQuestionInstance(BaseModel):
         return answer_instance
 
     @property
+    def url(self):
+        if self.course_test_instance.is_practice:
+            return reverse('course_practice_test_question', 
+                kwargs={'question_instance_guid':self.guid})
+        return reverse('course_test_question', 
+            kwargs={'question_instance_guid':self.guid})
+
+    @property
     def question_form(self):
         from core.forms import TestQuestionInstanceForm
         return TestQuestionInstanceForm(question_instance=self)
@@ -562,6 +570,10 @@ class CourseTestQuestionInstance(BaseModel):
     @property
     def question_contents(self):
         return self.course_test_question.question_contents
+
+    @property
+    def question_post_answer_comments(self):
+        return self.course_test_question.question_post_answer_comments
 
     @property
     def correct_multiple_choice_answer(self):
@@ -753,7 +765,21 @@ class MultipleChoiceAnswer(BaseModel):
 class MultipleChoiceTestQuestion(BaseModel):
     course_test = models.ForeignKey('CourseTest', null=True, on_delete=models.CASCADE,
         related_name='multiple_choice_test_questions')
-    question_contents = models.TextField(default='', help_text='what the question will say')
+    question_contents = models.TextField(default='', help_text=mark_safe('''
+        The contents of your question. Regular paragraphs will work as expected
+        However, this is interpreted in markdown, so you can add extra styling<br/>
+        <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank">
+        Click Here for a Markdown Cheat Sheet</a>
+        ''')
+    )
+    question_post_answer_comments = models.TextField(default='', help_text=mark_safe('''
+        Educational comments that will show only after the question is answered.
+        Regular paragraphs will work as expected
+        However, this is interpreted in markdown, so you can add extra styling<br/>
+        <a href="https://www.markdownguide.org/cheat-sheet/" target="_blank">
+        Click Here for a Markdown Cheat Sheet</a>
+        ''')
+    )
     correct_multiple_choice_answer = models.ForeignKey('MultipleChoiceAnswer', null=True,
         on_delete=models.CASCADE, related_name='multiple_choice_test_questions')
     other_multiple_choice_answers = models.ManyToManyField('MultipleChoiceAnswer', related_name='course_tests',
