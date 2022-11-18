@@ -34,5 +34,31 @@
 	</div>
 </div>
 <hr/>
-
+<div>
+	<div class="row text-center">
+		<div class="col-12">
+			<h2>Question Breakdown</h2>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-2">#</div>
+		<div class="col-6">Question</div>
+		<div class="col-2">Your Answer</div>
+		<div class="col-2">Correct Answer</div>
+		
+	</div>
+	{% for question in instance.question_instances %}
+	<div class="row">
+		<div class="col-2">{{ forloop.counter }}</div>
+		<div class="col-6">{{question.course_test_question.question_contents|truncatechars:150}}</div>
+			{% if question.course_test_answer_instance.is_correct %}
+			<div class="col-2 alert alert-success">{{question.course_test_answer_instance.value}}</div>
+			<div class="col-2 alert alert-success">{{question.correct_multiple_choice_answer}}</div>
+			{% else %}
+			<div class="col-2 alert alert-danger">{{question.course_test_answer_instance.value}}</div>
+			<div class="col-2 alert alert-danger">{{question.correct_multiple_choice_answer}}</div>
+			{% endif %}
+	</div>
+	{% endfor %}
+</div>
 {% endblock %}

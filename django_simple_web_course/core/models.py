@@ -485,6 +485,11 @@ class CourseTestInstance(BaseModel):
         return self.course_test_question_instances.count()
 
     @property
+    def question_instances(self):
+        return self.course_test_question_instances.order_by('order')
+    
+
+    @property
     def test_score_percent(self):
         return float('{0:.2f}'.format(
             self.number_of_correct_answers / self.total_number_of_questions * 100))
