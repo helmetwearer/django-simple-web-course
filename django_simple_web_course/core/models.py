@@ -331,10 +331,6 @@ class CourseViewInstance(BaseModel):
     pages_require_signature = models.BooleanField(default=False)
     page_signature_description = models.TextField(default='', blank=True)
     student_course_signature_value = models.CharField(max_length=200, blank=True, null=True)
-    first_page_view = models.ForeignKey('CoursePageViewInstance', null=True, related_name="+",
-        on_delete=models.CASCADE)
-    last_page_view = models.ForeignKey('CoursePageViewInstance', null=True, related_name="+",
-        on_delete=models.CASCADE)
 
     @property
     def enforce_minimum_time(self):
