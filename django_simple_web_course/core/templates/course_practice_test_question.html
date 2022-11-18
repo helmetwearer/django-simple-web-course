@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="question_content overflow-auto text-center">
-	<h2>Question {{question.order}}</h2>
+	<h2><b>{% if instance.is_practice %}Practice {% endif %}Test {{instance.course_test.order}}</b>: Question {{question.order}}</h2>
 	<hr/>
 	<div class="row">
 		<div class="col-2">

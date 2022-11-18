@@ -161,6 +161,7 @@ def course_practice_test_question_view(request, question_instance_guid=None):
 
     return render(request, 'course_practice_test_question.html', {
         'student':request.student,
+        'instance':course_test_instance,
         'course_test_question': course_test_question_instance.course_test_question,
         'course_test':course_test_instance.course_test,
         'course':course_test_instance.course_test.course,
