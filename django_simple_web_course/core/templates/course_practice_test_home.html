@@ -6,7 +6,48 @@
 {% endblock %}
 
 {% block content %}
+<div class="question_content overflow-auto text-center">
+	<h2><b>Practice Test</b></h2>
+	<hr/>
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<p>This is a practice test. You may take as many as you like to practice for the final test.
+		You will see your scores at the end and have the opportunity to review the answers.</p>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8"></div>
+		{% if course.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
+			{% if course.practice_counts_for_time %}
+			<p>Time you spend on practice test questions count towards the time minimum</p>
+			{% else %}
+			<p>Time spent in the practice test does not count towards course completion. To resume
+				your progress towards course completion please visit the <a href="{% url 'course_home' course_guid=course.guid %}">readings in the course</a></p>
+			{% endif %}
+		{% endif %}
+		<div class="col-2">
+		</div>
+	</div>
+	
+</div>
+<hr/>
+<div class="question_content overflow-auto text-center">
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block"">Start Test</a>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
 
-<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block"">Start Test</a>
 
 {% endblock %}

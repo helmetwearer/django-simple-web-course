@@ -130,12 +130,16 @@ def test_final_score_view(request, test_instance_guid=None):
         raise Http404
 
     course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
+    # can't get here if query is empty, no need to catch
+    course_view_instance = CourseViewInstance.objects.filter(student=course_test_instance.student,
+        course=course_test_instance.course).order_by('-created')[0]
 
     return render(request, 'test_final_score.html', {
         'student':request.student,
         'course_test':course_test_instance.course_test,
         'course':course_test_instance.course_test.course,
         'instance':course_test_instance,
+        'course_view_instance':course_view_instance,
     })
 
 @student_login_required

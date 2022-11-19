@@ -435,6 +435,10 @@ class CourseTestInstance(BaseModel):
     available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')    
 
     @property
+    def course(self):
+        return self.course_test.course
+
+    @property
     def passing_percentage(self):
         return self.course_test.passing_percentage
 
