@@ -1,12 +1,48 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
 
-{% block extra_left_nav %}
-{% include 'course_leftnav.html' %}
-{% endblock %}
-
 {% block content %}
+<div class="question_content overflow-auto text-center">
+	<h2><b>Live Test {{course_test.order}}</b></h2>
+	<hr/>
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<p>This Test will determine whether or not you pass the course.</p>
+			<p>You need to score at least a {{course_test_instance.passing_percentage}}% to pass</p>
+			<p>This means you need at least {{course_test_instance.minimum_questions_to_pass}} correct
+			answers out of {{course_test_instance.total_number_of_questions}} to pass.</p>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+	{% if course_test_instance.test_is_timed %}
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<p><b>This is a timed test.</b> You have {{course_test_instance.time_limit}} to complete
+			the test. The time will start when you press Start Test.</p>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+	{% endif %}
+</div>
+<hr/>
+<div class="question_content overflow-auto text-center">
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-4">
+			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block">Start Test</a>
+		</div>
+		<div class="col-4"><a class="btn btn-secondary btn-block" href="{% url 'course_home' course_guid=course.guid %}">Back to Course Home</a></div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
 
-course test home
 
 {% endblock %}

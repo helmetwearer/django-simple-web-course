@@ -181,13 +181,21 @@ def course_test_home_view(request, test_guid=None):
     if not test_guid:
         raise Http404
     course_test = CourseTest.objects.get(guid=test_guid)
+    course_test_instance = course_test.get_or_generate_test_instance_for_student(request.student,
+        is_practice=False)
+
+    starting_question = course_test_instance.course_test_question_instances.order_by('order')[0]
+    starting_question_url = reverse('course_test_question', 
+        kwargs={'question_instance_guid':starting_question.guid})
 
     return render(request, 'course_test_home.html', {
         'student':request.student,
+        'course_test_instance':course_test_instance,
         'course_test': course_test,
         'course': course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
+        'beginning_url': starting_question_url,
     })
 
 

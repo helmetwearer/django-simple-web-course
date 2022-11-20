@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.urls import reverse
 from .email_dispatchers import dispatch_student_verification_email
 from .utils import human_time_duration
-import uuid
+import uuid, math
 
 # Create your models here.
 class BaseModel(models.Model):
@@ -434,6 +434,20 @@ class CourseTestInstance(BaseModel):
     test_finished_on = models.DateTimeField(null=True)
     available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')    
 
+
+    @property
+    def live_test_allowed_urls(self):
+        allowed_urls = [
+            reverse('login'),
+            reverse('logout'),
+            reverse('course_test_home', kwargs={'test_guid':self.course_test.guid})
+        ]
+        allowed_urls += [
+            reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
+            for instance in self.question_instances
+        ]
+        return allowed_urls
+
     @property
     def course(self):
         return self.course_test.course
@@ -469,6 +483,9 @@ class CourseTestInstance(BaseModel):
             return True
         return False
 
+    @property
+    def time_limit(self):
+        return self.course_test.time_limit
 
     @property
     def maximum_time_seconds(self):
@@ -479,6 +496,14 @@ class CourseTestInstance(BaseModel):
         return self.course_test_question_instances.filter(
             course_test_question__correct_multiple_choice_answer=F('course_test_answer_instance__answer_chosen')
             ).count()
+
+    @property
+    def minimum_questions_to_pass(self):
+        return math.ceil(self.total_number_of_questions * self.passing_percentage / 100)
+
+    @property
+    def test_is_timed(self):
+        return self.course_test.test_is_timed
 
     @property
     def total_number_of_questions(self):
