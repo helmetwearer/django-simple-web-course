@@ -43,10 +43,16 @@
   max-height: 15vh;
 }
 
+.page-button-navigation-bar {
+  background-color: white;
+  padding-top: 0vh;
+  padding-bottom: 1vh;
+}
+
 .page-navigation-bar {
   background-color: white;
-  padding-top: 5vh;
-  padding-bottom: 5vh;
+  padding-top: 3vh;
+  padding-bottom: 1vh;
 }
 
 .page-navigation-bar > div > a {

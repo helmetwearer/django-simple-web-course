@@ -45,10 +45,10 @@
 				 Final Score
 			</a>
 			{% else %}
-			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block">{% if course_test_instance.test_started_on %}Continue Test{% else %}Start Test{% endif %}</a>
+			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block"><i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;{% if course_test_instance.test_started_on %}Continue Test{% else %}Start Test{% endif %}</a>
 			{% endif %}
 		</div>
-		<div class="col-4"><a class="btn btn-secondary btn-block" href="{% url 'course_home' course_guid=course.guid %}">Back to Course Home</a></div>
+		<div class="col-4"><a class="btn btn-secondary btn-block" href="{% url 'course_home' course_guid=course.guid %}"><i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Course Home</a></div>
 		<div class="col-2">
 		</div>
 	</div>

@@ -41,14 +41,23 @@
         </div>
     </div>
     {% endif %}
-    {% if course_view_instance and course_view_instance.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
-    <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+    {% if course_view_instance and course_view_instance.enforce_minimum_time %} 
+        {% if course_view_instance.read_time_remaining_seconds %}
+        <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Time Remaining:</h6>
+                <a id="timer" class="collapse-item" href="#"></a>
+            </div>
+        </div>
+        {% else %}
+        <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
-            <h6 class="collapse-header">Time Remaining:</h6>
-            <a id="timer" class="collapse-item" href="#"></a>
+            <h6 class="collapse-header">Reading Complete</h6>
         </div>
     </div>
+        {% endif %}
     {% endif %}
+
     
 </li>
 {% block left_nav_js %}
