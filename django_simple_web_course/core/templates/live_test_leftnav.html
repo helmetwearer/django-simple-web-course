@@ -1,0 +1,37 @@
+{% load core_filters %}
+{% if course_test_instance.test_is_timed and course_test_instance.seconds_remaining %}
+<li class="nav-item active">
+    <a class="nav-link" href="#" data-toggle="collapse" data-target=".collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+        <i class="fas fa-fw fa-cog"></i>
+        <span>{{course.name}}</span>
+    </a>
+    
+    <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Time Remaining:</h6>
+            <a id="timer" class="collapse-item" href="#"></a>
+        </div>
+    </div>
+    
+    
+</li>
+{% block left_nav_js %}
+
+<script type="text/javascript">
+    var total_seconds = {{course_test_instance.seconds_remaining}} + 1;
+    function update_time_display(){
+        total_seconds = total_seconds - 1;
+        if (total_seconds < 0){
+            total_seconds = 0;
+        }
+        var display_string = new Date(total_seconds * 1000).toISOString().substr(11, 8);
+        document.getElementById("timer").innerHTML = display_string;
+    }
+    update_time_display();
+    {% if start_clock %}
+    setInterval(update_time_display,1000);
+    {% endif %}
+</script>
+{% endblock %}
+{% endif %}
+

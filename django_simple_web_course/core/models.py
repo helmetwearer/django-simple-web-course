@@ -432,8 +432,18 @@ class CourseTestInstance(BaseModel):
         related_name='course_test_instances')
     test_started_on = models.DateTimeField(null=True)
     test_finished_on = models.DateTimeField(null=True)
-    available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')    
+    available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')
 
+    @property
+    def seconds_remaining(self):
+        if not self.test_is_timed or self.test_finished_on:
+            return 0
+        if not self.test_started_on:
+            return self.maximum_time_seconds
+        seconds_left = self.maximum_time_seconds - (timezone.now() - self.test_started_on).total_seconds()
+        if seconds_left < 0:
+            seconds_left = 0
+        return seconds_left
 
     @property
     def live_test_allowed_urls(self):
@@ -484,12 +494,12 @@ class CourseTestInstance(BaseModel):
         return False
 
     @property
-    def time_limit(self):
-        return self.course_test.time_limit
-
-    @property
     def maximum_time_seconds(self):
         return self.course_test.maximum_time_seconds
+
+    @property
+    def time_limit(self):
+        return self.course_test.time_limit
 
     @property
     def number_of_correct_answers(self):

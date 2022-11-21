@@ -1,6 +1,10 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
 
+{% block extra_left_nav %}
+{% include 'live_test_leftnav.html' %}
+{% endblock %}
+
 {% block content %}
 <div class="question_content overflow-auto text-center">
 	<h2><b>Live Test {{course_test.order}}</b></h2>
@@ -22,7 +26,7 @@
 		<div class="col-2">
 		</div>
 		<div class="col-8">
-			<p><b>This is a timed test.</b> You have {{course_test_instance.time_limit}} to complete
+			<p><b>This is a timed test.</b> You have <b>{{course_test_instance.time_limit}}</b> to complete
 			the test. The time will start when you press Start Test.</p>
 		</div>
 		<div class="col-2">
@@ -36,7 +40,13 @@
 		<div class="col-2">
 		</div>
 		<div class="col-4">
-			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block">Start Test</a>
+			{% if course_test_instance.is_complete %}
+			<a class="btn btn-primary btn-user btn-block" href="{% url 'test_final_score' test_instance_guid=course_test_instance.guid %}">
+				 Final Score
+			</a>
+			{% else %}
+			<a href="{{beginning_url}}" class="btn btn-primary btn-user btn-block">{% if course_test_instance.test_started_on %}Continue Test{% else %}Start Test{% endif %}</a>
+			{% endif %}
 		</div>
 		<div class="col-4"><a class="btn btn-secondary btn-block" href="{% url 'course_home' course_guid=course.guid %}">Back to Course Home</a></div>
 		<div class="col-2">

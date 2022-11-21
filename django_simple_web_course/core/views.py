@@ -193,6 +193,7 @@ def course_test_home_view(request, test_guid=None):
         'course_test_instance':course_test_instance,
         'course_test': course_test,
         'course': course_test.course,
+        'start_clock':False,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
         'beginning_url': starting_question_url,
@@ -204,15 +205,31 @@ def course_test_home_view(request, test_guid=None):
 def course_test_question_view(request, question_instance_guid=None):
     if not question_instance_guid:
         raise Http404
-    course_test_question = CourseTestQuestionInstance.objects.get(guid=question_instance_guid)
+    course_test_question_instance = CourseTestQuestionInstance.objects.get(guid=question_instance_guid)
+    course_test_instance = course_test_question_instance.course_test_instance
+    # if the test hasn't been marked started, we're on a question start it
+    if not course_test_instance.test_started_on:
+        course_test_instance.test_started_on = timezone.now()
+        course_test_instance.save()
+
+    answer_instance = course_test_question_instance.answer_instance
+
+    if request.method == 'POST' and not answer_instance:
+        form = TestQuestionInstanceForm(request.POST, 
+            question_instance=course_test_question_instance)
+        if form.is_valid():
+            course_test_question_instance.choose_answer(form.cleaned_data['answer'])
 
     return render(request, 'course_test_question.html', {
         'student':request.student,
-        'course_test_question': course_test_question,
-        'course_test':course_test_question.course_test,
-        'course':course_test_question.course_test.course,
+        'course_test_question': course_test_question_instance,
+        'course_test':course_test_question_instance.course_test,
+        'course':course_test_question_instance.course_test.course,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
+        'start_clock':True,
+        'question':course_test_question_instance,
+        'answer_instance':answer_instance,
     })
 
 @student_login_required

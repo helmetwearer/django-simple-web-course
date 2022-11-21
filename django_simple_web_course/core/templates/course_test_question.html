@@ -1,12 +1,95 @@
 {% extends "dashboard_base.html" %}
 {% load i18n %}
+{% load core_filters %}
 
 {% block extra_left_nav %}
-{% include 'course_leftnav.html' %}
+{% include 'live_test_leftnav.html' %}
 {% endblock %}
 
 {% block content %}
+<div class="question_content overflow-auto text-center">
+	<h2><b>{% if instance.is_practice %}Practice {% endif %}Test {{instance.course_test.order}}</b>: Question {{question.order}}</h2>
+	<hr/>
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">{{question.question_contents|render_markdown}}</div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
+<hr/>
+{% if question.answer_instance %}
 
-course test question
+{% if question.question_post_answer_comments %}
+<div class="question_comments overflow-auto text-center">
+	<div class="row">
+		<div class="col-2"></div>
+		<div class="col-8">{{question.question_post_answer_comments|render_markdown}}</div>
+		<div class="col-2"></div>
+	</div>
+</div>
+<hr>
+{% endif %}
+<div class="answer_recap overflow-auto text-center">
 
+	<div class="row">
+		<div class="col-2"></div>
+		<div class="col-8">
+			<h5><b>Your answer:</b> {{question.answer_instance.value}}</h5>
+			<h5><b>Correct answer:</b> {{question.correct_multiple_choice_answer}}</h5>
+			{% if question.answer_instance.is_correct %}
+			<div class="alert alert-success" role="alert">
+			  <i class="fa-regular fa-face-grin-beam"></i> You got this question correct!
+			  {% if question.next_instance_url %}<a href="{{question.next_instance_url}}" class="alert-link">Next Question</a>{% endif %}
+			</div>
+			{% else %}
+			<div class="alert alert-danger" role="alert">
+			  <i class="fa-regular fa-face-frown-open"></i> Incorrect answer
+			  {% if question.next_instance_url %}<a href="{{question.next_instance_url}}" class="alert-link">Next Question</a>{% endif %}
+			</div>
+			{% endif %}
+		</div>
+		<div class="col-2"></div>
+	</div>
+</div>
+{% else %}
+<div class="answer_form overflow-auto text-center">
+	<div class="row">
+		<div class="col-2">
+		</div>
+		<div class="col-8">
+			<form method="POST" action=".">
+				{% csrf_token %}
+				{{question.question_form}}
+				<input type="submit" class="btn btn-primary">
+			</form>
+		</div>
+		<div class="col-2">
+		</div>
+	</div>
+</div>
+{% endif %}
+
+<div class="row text-center">
+	<div class="col-2">
+		{% if question.previous_instance_url %}
+		<a class="btn btn-secondary" href="{{question.previous_instance_url}}">Previous Question</a>
+		{% endif %}
+	</div>
+	<div class="col-3"></div>
+	<div class="col-2">
+		{% if question.course_test_instance.is_complete %}
+		<a class="btn btn-success" href="{% url 'test_final_score' test_instance_guid=question.course_test_instance.guid %}">
+			 Final Score
+		</a>
+		{% endif %}
+	</div>
+	<div class="col-3"></div>
+	<div class="col-2">
+		{% if question.next_instance_url %}
+		<a class="btn btn-secondary" href="{{question.next_instance_url}}">Next Question</a>
+		{% endif %}
+	</div>
+</div>
 {% endblock %}

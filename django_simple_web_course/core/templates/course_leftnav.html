@@ -41,7 +41,7 @@
         </div>
     </div>
     {% endif %}
-    {% if course_view_instance and course_view_instance.enforce_minimum_time %}
+    {% if course_view_instance and course_view_instance.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
     <div class="collapse show collapseTwo" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
         <div class="bg-white py-2 collapse-inner rounded">
             <h6 class="collapse-header">Time Remaining:</h6>
@@ -52,7 +52,7 @@
     
 </li>
 {% block left_nav_js %}
-{% if course_view_instance and course_view_instance.enforce_minimum_time %}
+{% if course_view_instance and course_view_instance.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
 <script type="text/javascript">
     var total_seconds = {{course_view_instance.read_time_remaining_seconds}} + 1;
     function update_time_display(){
@@ -63,7 +63,7 @@
         var display_string = new Date(total_seconds * 1000).toISOString().substr(11, 8);
         document.getElementById("timer").innerHTML = display_string;
     }
-    update_time_display(0);
+    update_time_display();
     setInterval(update_time_display,1000);
 </script>
 {% endif %}
