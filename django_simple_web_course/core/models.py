@@ -446,6 +446,10 @@ class CourseTestInstance(BaseModel):
         return seconds_left
 
     @property
+    def home_url(self):
+        return reverse('course_test_home', kwargs={'test_guid':self.course_test.guid})
+
+    @property
     def live_test_allowed_urls(self):
         allowed_urls = [
             reverse('login'),
@@ -484,7 +488,7 @@ class CourseTestInstance(BaseModel):
     def has_time_expired(self):
         if self.test_finished_on:
             return True
-        if not self.course_test.test_is_timed:
+        if not self.course_test or not self.course_test.test_is_timed:
             return False
         if ((self.test_started_on) and (self.test_started_on + timezone.timedelta(
             seconds=self.maximum_time_seconds) < timezone.now())):

@@ -193,7 +193,7 @@ def course_test_home_view(request, test_guid=None):
         'course_test_instance':course_test_instance,
         'course_test': course_test,
         'course': course_test.course,
-        'start_clock':False,
+        'start_clock':course_test_instance.test_started_on is not None,
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
         'beginning_url': starting_question_url,
@@ -211,6 +211,9 @@ def course_test_question_view(request, question_instance_guid=None):
     if not course_test_instance.test_started_on:
         course_test_instance.test_started_on = timezone.now()
         course_test_instance.save()
+        # since we're starting a test, add it to the session so the middleware
+        # locks the url down to the test
+        request.session['live_test_guid'] = str(course_test_instance.guid)
 
     answer_instance = course_test_question_instance.answer_instance
 
@@ -222,6 +225,7 @@ def course_test_question_view(request, question_instance_guid=None):
 
     return render(request, 'course_test_question.html', {
         'student':request.student,
+        'course_test_instance':course_test_instance,
         'course_test_question': course_test_question_instance,
         'course_test':course_test_question_instance.course_test,
         'course':course_test_question_instance.course_test.course,

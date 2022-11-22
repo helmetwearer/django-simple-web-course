@@ -70,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.PageViewInstanceMiddleware',
+    'core.middleware.LiveTestRoutingMiddleware',
 ]
 
 ROOT_URLCONF = 'django_simple_web_course.urls'

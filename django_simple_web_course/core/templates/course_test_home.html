@@ -14,9 +14,10 @@
 		</div>
 		<div class="col-8">
 			<p>This Test will determine whether or not you pass the course.</p>
-			<p>You need to score at least a {{course_test_instance.passing_percentage}}% to pass</p>
-			<p>This means you need at least {{course_test_instance.minimum_questions_to_pass}} correct
-			answers out of {{course_test_instance.total_number_of_questions}} to pass.</p>
+			<p>You need to score at least a <b>{{course_test_instance.passing_percentage}}%</b> to pass</p>
+			<p>This means you need at least <b>{{course_test_instance.minimum_questions_to_pass}}</b> correct
+			answers out of <b>{{course_test_instance.total_number_of_questions}}</b> to pass.</p>
+			<p><i>You cannot leave this test until it is complete{% if course_test_instance.test_is_timed %} or time has expired{% endif %}</i></p>
 		</div>
 		<div class="col-2">
 		</div>
