@@ -74,7 +74,7 @@
 <div class="row text-center">
 	<div class="col-2">
 		{% if question.previous_instance_url %}
-		<a class="btn btn-secondary" href="{{question.previous_instance_url}}">Previous Question</a>
+		<a class="btn btn-secondary" href="{{question.previous_instance_url}}"><i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Previous Question</a>
 		{% endif %}
 	</div>
 	<div class="col-3"></div>
@@ -83,12 +83,14 @@
 		<a class="btn btn-success" href="{% url 'test_final_score' test_instance_guid=question.course_test_instance.guid %}">
 			 Final Score
 		</a>
+		{% elif question.next_unanswered_instance_url and question.next_unanswered_instance_url != question.next_instance_url %}
+		<a class="btn btn-secondary" href="{{question.next_unanswered_instance_url}}"><i class="fa-solid fa-forward"></i>&nbsp;&nbsp;&nbsp;Next Unanswered</a>
 		{% endif %}
 	</div>
 	<div class="col-3"></div>
 	<div class="col-2">
 		{% if question.next_instance_url %}
-		<a class="btn btn-secondary" href="{{question.next_instance_url}}">Next Question</a>
+		<a class="btn btn-secondary" href="{{question.next_instance_url}}"><i class="fa-solid fa-forward"></i>&nbsp;&nbsp;&nbsp;Next Question</a>
 		{% endif %}
 	</div>
 </div>

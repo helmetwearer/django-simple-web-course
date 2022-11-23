@@ -707,8 +707,8 @@ class CourseTestQuestionInstance(BaseModel):
             instance = self.get_manager.get(course_test_instance=self.course_test_instance, 
                 order=self.order-1)
             if self.course_test_instance.is_practice:
-                return reverse(
-                    'course_practice_test_question', kwargs={'question_instance_guid':instance.guid})
+                return reverse('course_practice_test_question', 
+                    kwargs={'question_instance_guid':instance.guid})
             return reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
         except self.DoesNotExist:
             return ''
@@ -719,11 +719,32 @@ class CourseTestQuestionInstance(BaseModel):
             instance = self.get_manager.get(course_test_instance=self.course_test_instance, 
                 order=self.order+1)
             if self.course_test_instance.is_practice:
-                return reverse(
-                    'course_practice_test_question', kwargs={'question_instance_guid':instance.guid})
+                return reverse('course_practice_test_question', 
+                    kwargs={'question_instance_guid':instance.guid})
             return reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
         except self.DoesNotExist:
             return ''
+
+    @property
+    def next_unanswered_instance_url(self):
+        unanswered_instance = None
+        unanswered_instances_after = self.get_manager.filter(course_test_instance=self.course_test_instance,
+            order__gte=self.order).exclude(guid=self.guid).exclude(course_test_answer_instance__isnull=False
+            ).order_by('order')
+        unanswered_instances_before = self.get_manager.filter(course_test_instance=self.course_test_instance,
+            order__lte=self.order).exclude(guid=self.guid).exclude(course_test_answer_instance__isnull=False
+            ).order_by('order')
+        if unanswered_instances_after.count() > 0:
+            unanswered_instance = unanswered_instances_after[0]
+        elif unanswered_instances_before.count() > 0:
+            unanswered_instance = unanswered_instances_before[0]
+
+        if unanswered_instance:
+            if self.course_test_instance.is_practice:
+                return reverse('course_practice_test_question', 
+                    kwargs={'question_instance_guid':unanswered_instance.guid})
+            return reverse('course_test_question', kwargs={'question_instance_guid':unanswered_instance.guid})
+        return ''
 
 class CourseTest(BaseModel):
 
