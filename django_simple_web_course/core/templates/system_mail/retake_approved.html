@@ -1,0 +1,10 @@
+<p>Dear {{student.first_name}},</p>
+
+<p>Our staff has approved request to retake Test {{instance.order}} for the course {{instance.course}}.</p>
+
+<p>You can retake the test here: <a href="{{url_prepend}}{{instance.home_url}}">{{url_prepend}}{{instance.home_url}}</a></p>
+
+{% if admin_note %}
+<p>Note from our staff:</p>
+<p>{{admin_note}}</p>
+{% endif %}

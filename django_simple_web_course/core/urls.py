@@ -9,6 +9,8 @@ urlpatterns = [
         views.student_document_upload, name='student_document_upload'),
     re_path(r'^student_verification/(?P<student_guid>[a-zA-Z0-9_-]+)/$',
         views.student_verification, name='student_verification'),
+    re_path(r'^test_instance_retake_approval/(?P<test_instance_guid>[a-zA-Z0-9_-]+)/$',
+        views.test_instance_retake_approval, name='test_instance_retake_approval'),
     re_path(r'^student_dashboard/$', views.student_dashboard, name='student_dashboard'),
     re_path(r'^course_home/(?P<course_guid>[a-zA-Z0-9_-]+)/$',
         views.course_home_view, name='course_home'),
@@ -26,4 +28,6 @@ urlpatterns = [
         views.course_complete_view, name='course_complete'),
     re_path(r'^course_test_final_score/(?P<test_instance_guid>[a-zA-Z0-9_-]+)/$',
         views.test_final_score_view, name='test_final_score'),
+    re_path(r'^course_test_request_retake/(?P<test_instance_guid>[a-zA-Z0-9_-]+)/$',
+        views.course_test_request_retake, name='course_test_request_retake'),
 ]

@@ -433,6 +433,15 @@ class CourseTestInstance(BaseModel):
     test_started_on = models.DateTimeField(null=True)
     test_finished_on = models.DateTimeField(null=True)
     available_questions = models.ManyToManyField('MultipleChoiceTestQuestion', related_name='course_test_instances')
+    retake_requested = models.BooleanField(default=False)
+
+    @property
+    def retakes_enabled(self):
+        return self.course_test.retake_policy != 'none'
+
+    @property
+    def retakes_automatic(self):
+        return self.course_test.retake_policy == 'auto'
 
     @property
     def seconds_remaining(self):
@@ -450,11 +459,19 @@ class CourseTestInstance(BaseModel):
         return reverse('course_test_home', kwargs={'test_guid':self.course_test.guid})
 
     @property
+    def retake_approval_url(self):
+        return reverse('test_instance_retake_approval', kwargs={'test_instance_guid':self.guid})
+
+    @property
+    def final_score_url(self):
+        return reverse('test_final_score', kwargs={'test_instance_guid':self.guid})
+
+    @property
     def live_test_allowed_urls(self):
         allowed_urls = [
             reverse('login'),
             reverse('logout'),
-            reverse('course_test_home', kwargs={'test_guid':self.course_test.guid})
+            self.home_url,
         ]
         allowed_urls += [
             reverse('course_test_question', kwargs={'question_instance_guid':instance.guid})
@@ -527,6 +544,9 @@ class CourseTestInstance(BaseModel):
     def question_instances(self):
         return self.course_test_question_instances.order_by('order')
     
+    @property
+    def order(self):
+        return self.course_test.order
 
     @property
     def test_score_percent(self):
@@ -706,6 +726,12 @@ class CourseTestQuestionInstance(BaseModel):
             return ''
 
 class CourseTest(BaseModel):
+
+    class RetakePolicy(models.TextChoices):
+        AUTOMATIC = 'auto', _('Automatic')
+        EMAIL_APPROVAL = 'email', _('Email Approval')
+        NO_RETAKES = 'none', _('No Retakes')
+
     course = models.ForeignKey('Course', null=True, on_delete=models.CASCADE,
         related_name='course_tests')
     order = models.IntegerField(default=1)
@@ -729,6 +755,8 @@ class CourseTest(BaseModel):
     only_practice_test = models.BooleanField(default=False, 
         help_text='When turned on only test only counts for practice')
     passing_percentage = models.IntegerField(default=60, help_text='The minimum percentage needed to pass')
+    retake_policy = models.CharField(max_length=5, choices=RetakePolicy.choices, default=RetakePolicy.AUTOMATIC,
+        blank=True)
 
     @property
     def number_of_available_questions(self):
@@ -744,21 +772,8 @@ class CourseTest(BaseModel):
     def time_limit(self):
         return human_time_duration(self.maximum_time_seconds)
 
-    def get_or_generate_test_instance_for_student(self, student, is_practice=False):
+    def generate_test_instance_for_student(self, student, is_practice=False):
         from .models import CourseTestInstance, CourseTestQuestionInstance
-        #look for an existing active test and return if relevant
-        # we generate new practice tests after old ones are finished
-        if is_practice:
-            active_tests = self.course_test_instances.filter(student=student, 
-                test_finished_on__isnull=True, is_practice=is_practice)
-        # live test. Cannot have a retake marked, return completed tests as well
-        # return of a completed test will mean inability to take a new one
-        else:
-            active_tests = self.course_test_instances.filter(student=student,
-                is_practice=is_practice, retake__isnull=True)
-        if active_tests.count() > 0:
-            return active_tests[0]
-
         # no active tests found, generate one
         number_of_available_questions = self.number_of_available_questions
         # we can only generate if we have questions
@@ -784,9 +799,23 @@ class CourseTest(BaseModel):
                 new_question.create_answer_options()
 
             return new_test_instance
-
         return None
 
+    def get_or_generate_test_instance_for_student(self, student, is_practice=False):
+        #look for an existing active test and return if relevant
+        # we generate new practice tests after old ones are finished
+        if is_practice:
+            active_tests = self.course_test_instances.filter(student=student, 
+                test_finished_on__isnull=True, is_practice=is_practice)
+        # live test. Cannot have a retake marked, return completed tests as well
+        # return of a completed test will mean inability to take a new one
+        else:
+            active_tests = self.course_test_instances.filter(student=student,
+                is_practice=is_practice, retake__isnull=True)
+        if active_tests.count() > 0:
+            return active_tests[0]
+
+        return self.generate_test_instance_for_student(student, is_practice=is_practice)
 
     def __str__(self):
         return '%s %s' %(self.course.name, self.order)

@@ -1,0 +1,25 @@
+{% extends "dashboard_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1> Retake request for {{student.full_legal_name}} for {{instance.course_test.course}} - Test #{{instance.order}}</h1>
+<a href="{{student.admin_change_url}}" target="_blank" >Student Details</a>
+
+{% if instance.test_passed %}
+<p><b>Student passed this test</b></p>
+{% else %}
+<p><b>Student failed this test</p>
+{% endif %}
+<p>{{instance.number_of_correct_answers}} correct out of {{instance.total_number_of_questions}} questions</p>
+<p>{{instance.test_score_percent}}%</p>
+{% if not instance.retake %}
+<form action="{% url 'test_instance_retake_approval' test_instance_guid=instance.guid %}" method="POST">
+	{% csrf_token %}
+	{{form}}
+	
+	<input type="submit" value="Submit">
+</form>
+{% else %}
+<p>Approval already submitted</p>
+{% endif %}
+{% endblock %}

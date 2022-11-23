@@ -15,6 +15,13 @@ def is_valid_uuid(uuid_to_test, version=4):
         return False
     return str(uuid_obj) == uuid_to_test
 
+class RetakeApprovalForm(forms.Form):
+    APPROVAL_CHOICES = [('R','Rejected'),('A','Approved')]
+    approved = forms.CharField(label='Retake Approval', 
+        widget=forms.RadioSelect(choices=APPROVAL_CHOICES))
+    student_note = forms.CharField(label='(Optional) Note to student',
+        widget=forms.Textarea(), required=False)
+
 class StudentVerificationForm(forms.Form):
     VERIFIED_CHOICES = [('R','Rejected'),('A','Approved')]
     verified = forms.CharField(label='Verification', widget=forms.RadioSelect(choices=VERIFIED_CHOICES))

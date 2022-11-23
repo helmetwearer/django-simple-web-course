@@ -22,7 +22,7 @@
 	<div class="row">
 		<div class="col-2">
 		</div>
-		<div class="col-8"></div>
+		<div class="col-8">
 		{% if course.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
 			{% if course.practice_counts_for_time %}
 			<p>Time you spend on practice test questions count towards the time minimum</p>
@@ -31,6 +31,7 @@
 				your progress towards course completion please visit the <a href="{% url 'course_home' course_guid=course.guid %}">readings in the course</a></p>
 			{% endif %}
 		{% endif %}
+		</div>
 		<div class="col-2">
 		</div>
 	</div>

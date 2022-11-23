@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .decorators import student_login_required, page_tracking_enabled
 
 from .forms import (StudentProfileForm, StudentIdentificationDocumentForm, StudentVerificationForm,
-    TestQuestionInstanceForm)
+    TestQuestionInstanceForm, RetakeApprovalForm)
 
 from .models import (StudentIdentificationDocument, Student, Course, CoursePage, CoursePageMedia,
     CoursePageMedia, CourseViewInstance, CoursePageViewInstance, CourseTest, MultipleChoiceAnswer,
@@ -14,7 +14,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.urls import reverse
-from .email_dispatchers import email_student_reverification, email_student_verification_complete
+from .email_dispatchers import (email_student_reverification, email_student_verification_complete,
+    dispatch_test_retake_email, dispatch_test_retake_approved_email, dispatch_test_retake_rejected_email)
 import json
 
 # views should be class based, for dev speed writing functions to convert later
@@ -29,6 +30,36 @@ def send_form_error_messages(form, request):
             messages.add_message(request, messages.ERROR,
             '%s: %s' % (error_field.replace('_', ' ').capitalize(),
                 error['message']))
+
+@staff_member_required
+def test_instance_retake_approval(request, test_instance_guid=None):
+    course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
+
+    form = RetakeApprovalForm()
+    if request.method == 'POST':
+        form = RetakeApprovalForm(request.POST)
+        if form.is_valid():
+            # retake approved. Generate new test and inform student
+            if form['approved'].value() == 'A' and course_test_instance.retake is None:
+                new_instance = course_test_instance.course_test.generate_test_instance_for_student(
+                    course_test_instance.student, is_practice=False)
+                course_test_instance.retake = new_instance
+                course_test_instance.retake_requested = True
+                course_test_instance.save()
+                dispatch_test_retake_approved_email(new_instance, form['student_note'].value())
+                return HttpResponseRedirect(course_test_instance.student.admin_change_url)
+            # retake denied. Reset retake request flag
+            if form['approved'].value() == 'R':
+                course_test_instance.retake_requested = False
+                course_test_instance.save()
+                dispatch_test_retake_rejected_email(course_test_instance, form['student_note'].value())
+                return HttpResponseRedirect(course_test_instance.student.admin_change_url)
+
+    return render(request, 'internal/retake_approval.html',{
+        'instance': course_test_instance,
+        'student': course_test_instance.student,
+        'form':form
+    })
 
 @staff_member_required
 def student_verification(request, student_guid=None):
@@ -64,7 +95,7 @@ def student_verification(request, student_guid=None):
                 email_student_reverification(student, form['student_note'].value())
             return HttpResponseRedirect(student.admin_change_url)
 
-    return render(request, 'student_verification.html',{
+    return render(request, 'internal/student_verification.html',{
         'student':student,
         'docs':docs,
         'form': form,
@@ -122,24 +153,6 @@ def course_practice_test_home_view(request, test_guid=None):
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
         'beginning_url': starting_question_url,
-    })
-
-@student_login_required
-def test_final_score_view(request, test_instance_guid=None):
-    if not test_instance_guid:
-        raise Http404
-
-    course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
-    # can't get here if query is empty, no need to catch
-    course_view_instance = CourseViewInstance.objects.filter(student=course_test_instance.student,
-        course=course_test_instance.course).order_by('-created')[0]
-
-    return render(request, 'test_final_score.html', {
-        'student':request.student,
-        'course_test':course_test_instance.course_test,
-        'course':course_test_instance.course_test.course,
-        'instance':course_test_instance,
-        'course_view_instance':course_view_instance,
     })
 
 @student_login_required
@@ -237,6 +250,50 @@ def course_test_question_view(request, question_instance_guid=None):
     })
 
 @student_login_required
+def test_final_score_view(request, test_instance_guid=None):
+    if not test_instance_guid:
+        raise Http404
+
+    course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
+    # can't get here if query is empty, no need to catch
+    course_view_instance = CourseViewInstance.objects.filter(student=course_test_instance.student,
+        course=course_test_instance.course).order_by('-created')[0]
+
+    return render(request, 'test_final_score.html', {
+        'student':request.student,
+        'course_test':course_test_instance.course_test,
+        'course':course_test_instance.course_test.course,
+        'instance':course_test_instance,
+        'course_view_instance':course_view_instance,
+    })
+
+@student_login_required
+def course_test_request_retake(request, test_instance_guid=None):
+    course_test_instance = CourseTestInstance.objects.get(guid=test_instance_guid)
+    if course_test_instance.course_test.retake_policy == 'auto':
+        new_course_test_instance = course_test_instance.course_test.generate_test_instance_for_student(
+            request.student, is_practice=False)
+        course_test_instance.retake = new_course_test_instance
+        course_test_instance.retake_requested = True
+        course_test_instance.save()
+        messages.add_message(request, messages.SUCCESS, 'Retake approved')
+
+        return HttpResponseRedirect(reverse('course_test_home', 
+            kwargs={'test_guid':course_test_instance.course_test.guid}))
+
+    if course_test_instance.course_test.retake_policy == 'email':
+        course_test_instance.retake_requested = True
+        course_test_instance.save()
+        dispatch_test_retake_email(course_test_instance)
+        messages.add_message(request, messages.SUCCESS, 'Retake request received')
+
+        return HttpResponseRedirect(reverse('test_final_score', 
+            kwargs={'test_instance_guid':test_instance_guid}))
+
+    return HttpResponseRedirect(reverse('course_test_home', 
+        kwargs={'test_guid':course_test_instance.course_test.guid}))
+
+@student_login_required
 @page_tracking_enabled
 def course_complete_view(request, course_guid=None):
     if not course_guid:
@@ -249,7 +306,6 @@ def course_complete_view(request, course_guid=None):
         'course_view_instance':request.course_view_instance,
         'page_view_instance':request.page_view_instance,
     })
-
 
 @student_login_required
 def student_home(request):

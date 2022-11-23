@@ -1,0 +1,9 @@
+<p>Dear {{student.first_name}},</p>
+
+<p>Our staff has denied your request to retake Test {{instance.order}} for the course {{instance.course}}.</p>
+
+<p>You can view your final score here: <a href="{{url_prepend}}{{instance.final_score_url}}">{{url_prepend}}{{instance.final_score_url}}</a></p>
+{% if admin_note %}
+<p>Note from our staff:</p>
+<p>{{admin_note}}</p>
+{% endif %}

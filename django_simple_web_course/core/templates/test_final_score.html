@@ -32,18 +32,33 @@
 		</div>
 		<div class="col-2"></div>
 	</div>
+	{% if not instance.is_practice and instance.retakes_enabled %}
+	<div class="row">
+		<div class="col-2"></div>
+		<div class="col-8">
+			{% if not instance.retake_requested %}
+			<p>If you aren't happy with your score you may request a retake. If approved you will lose this score.</p>
+			<a href="{% url 'course_test_request_retake' test_instance_guid=instance.guid %}"
+			class="btn btn-danger" onclick="return confirm('You will lose this test score. Are you sure?')">Request Retake</a>
+			{% else %}
+			<p>Your request to retake this test has been received. You will get a follow up email with instructions.</p>
+			{% endif %}
+		</div>
+		<div class="col-2"></div>
+	</div>
+	{% endif %}
 	{% if instance.is_practice %}
 	<div class="row">
 		<div class="col-2"></div>
 		<div class="col-4">
-			<a class="btn btn-secondary" href="{% url 'course_practice_test_home' test_guid=course_test.guid %}">Take another practice test</a>
+			<a class="btn btn-secondary btn-block" href="{% url 'course_practice_test_home' test_guid=course_test.guid %}"><i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Take another practice test</a>
 		</div>
 		<div class="col-4">
 		{% if course.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
-			<a class="btn btn-primary" href="{% url 'course_home' course_guid=course.guid %}">Back to readings</a>
+			<a class="btn btn-primary btn-block" href="{% url 'course_home' course_guid=course.guid %}"><i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Back to readings</a>
 		{% else %}
 		
-			<a class="btn btn-primary" href="{% url 'course_test_home' test_guid=course_test.guid %}">Take the test</a>
+			<a class="btn btn-primary btn-block" href="{% url 'course_test_home' test_guid=course_test.guid %}"><i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Take the test</a>
 		{% endif %}
 		</div>
 		<div class="col-2"></div>
