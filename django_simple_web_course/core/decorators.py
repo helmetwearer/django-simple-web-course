@@ -45,7 +45,7 @@ def get_tracking_models(request, *args, **kwargs):
         student = Student.objects.get(user=request.user)
 
     if 'course_guid' in kwargs:
-        course_obj = course.objects.get(guid=kwargs['course_guid'])
+        course_obj = Course.objects.get(guid=kwargs['course_guid'])
     if 'page_guid' in kwargs:
         course_page = CoursePage.objects.get(guid=kwargs['page_guid'])
     if 'test_guid' in kwargs:

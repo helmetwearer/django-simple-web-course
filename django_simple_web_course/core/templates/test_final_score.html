@@ -55,7 +55,7 @@
 		</div>
 		<div class="col-4">
 		{% if course.enforce_minimum_time and course_view_instance.read_time_remaining_seconds %}
-			<a class="btn btn-primary btn-block" href="{% url 'course_home' course_guid=course.guid %}"><i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Back to readings</a>
+			<a class="btn btn-primary btn-block" href="{% url 'course_home' course_guid=course.guid %}"><i class="fa-solid fa-backward"></i>&nbsp;&nbsp;&nbsp;Course Home</a>
 		{% else %}
 		
 			<a class="btn btn-primary btn-block" href="{% url 'course_test_home' test_guid=course_test.guid %}"><i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Take the test</a>

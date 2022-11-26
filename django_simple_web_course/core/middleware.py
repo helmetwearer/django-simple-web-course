@@ -18,12 +18,11 @@ class PageViewInstanceMiddleware:
             # we've detected a previous instance, mark it finished, calculate time credit
             if page_view_instance:
                 page_view_instance.page_view_stop = timezone.now()
-                maximum_idle_time_seconds = page_view_instance.course_view_instance.course.maximum_idle_time_seconds
-                seconds_diff = (page_view_instance.page_view_stop - page_view_instance.page_view_start).seconds
-                if seconds_diff > maximum_idle_time_seconds:
-                    seconds_diff = maximum_idle_time_seconds
-                page_view_instance.total_seconds_spent = seconds_diff
-                page_view_instance.save()
+                if page_view_instance.credit_page_view_time:
+                    seconds_diff = (page_view_instance.page_view_stop - page_view_instance.page_view_start).seconds
+                    page_view_instance.total_seconds_spent = min(seconds_diff,
+                        page_view_instance.maximum_idle_time_seconds)
+                    page_view_instance.save()
 
 
         response = self.get_response(request)

@@ -111,13 +111,16 @@ def student_dashboard(request):
     })
 
 @student_login_required
+@page_tracking_enabled
 def course_home_view(request, course_guid=None):
     if not course_guid:
         raise Http404
 
+    course = Course.objects.get(guid=course_guid)
+
     return render(request, 'course_home.html', {
         'student': request.student,
-        'course': Course.objects.get(guid=course_guid),
+        'course': course,
     })
 
 @student_login_required
@@ -265,6 +268,7 @@ def test_final_score_view(request, test_instance_guid=None):
         'course':course_test_instance.course_test.course,
         'instance':course_test_instance,
         'course_view_instance':course_view_instance,
+        'page_view_instance':request.page_view_instance,
     })
 
 @student_login_required

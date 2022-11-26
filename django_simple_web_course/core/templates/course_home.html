@@ -33,9 +33,15 @@ to pass this course.</p>
 	{% if course.course_pages.count > 0 %}
 	{% with course.course_pages_ordered.all|first as page %}
 	<div class="col-xl-3">
-		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-secondary btn-user btn-block">
+		{% if course|course_last_page_view_url:request.student %}
+		<a href="{{course|course_last_page_view_url:request.student}}" class="btn btn-primary btn-user btn-block">
+			<i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Continue Course
+		</a>
+		{% else %}
+		<a href="{% url 'course_page' page_guid=page.guid %}" class="btn btn-primary btn-user btn-block">
 			<i class="fa-solid fa-pen-to-square"></i>&nbsp;&nbsp;&nbsp;Begin Course
 		</a>
+		{% endif %}
 	</div>
 	{% endwith %}
 	{% else %}

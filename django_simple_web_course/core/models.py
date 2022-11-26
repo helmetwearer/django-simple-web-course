@@ -212,6 +212,18 @@ class Course(BaseModel):
             return pages_viewed.latest('created').url
         return ""
 
+    def last_page_view_url(self, student):
+        try:
+            instance = CourseViewInstance.objects.get(course=self, student=student)
+        except CourseViewInstance.DoesNotExist:
+            return ''
+        pages_viewed = CoursePageViewInstance.objects.filter(
+            course_view_instance=instance, course_page__isnull=False).order_by('-created')
+        if pages_viewed.count():
+            return reverse('course_page', kwargs={'page_guid':pages_viewed[0].course_page.guid})
+
+        return ''
+
     def url_recent_history(self, student):
         try:
             instance = CourseViewInstance.objects.get(course=self, student=student)
@@ -372,17 +384,16 @@ class CoursePageViewInstance(BaseModel):
         related_name='course_page_view_instances')
 
     @property
+    def maximum_idle_time_seconds(self):
+        return self.course_view_instance.course.maximum_idle_time_seconds
+
+    @property
     def credit_page_view_time(self):
-        # function not finished paused to fix arch problem
-        if self.course_page:
-            return True
-        if self.course_view_instance.course.practice_counts_for_time:
-            test_obj = self.course_test
-            if self.course_test_question:
-                test_obj = self.course_test_question.course_test
-            if test_obj and test_obj:
-                return True
-        return False
+        return (self.course_page or 
+            (self.course_view_instance.course.practice_counts_for_time and 
+             self.course_test_question and self.course_test_instance 
+                and self.course_test_instance.is_practice)
+        )
 
 
     @property

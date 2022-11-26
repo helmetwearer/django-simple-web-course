@@ -19,3 +19,8 @@ def course_continue_url(course, student):
 @register.filter
 def course_recent_url_history(course, student):
     return course.url_recent_history(student)
+
+
+@register.filter
+def course_last_page_view_url(course, student):
+    return course.last_page_view_url(student)

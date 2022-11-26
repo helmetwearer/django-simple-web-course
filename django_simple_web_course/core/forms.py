@@ -15,6 +15,9 @@ def is_valid_uuid(uuid_to_test, version=4):
         return False
     return str(uuid_obj) == uuid_to_test
 
+class CourseStudentSignatureForm(forms.Form):
+    pass
+
 class RetakeApprovalForm(forms.Form):
     APPROVAL_CHOICES = [('R','Rejected'),('A','Approved')]
     approved = forms.CharField(label='Retake Approval', 

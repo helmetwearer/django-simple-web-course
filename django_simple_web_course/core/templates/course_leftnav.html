@@ -10,7 +10,7 @@
             <a class="collapse-item" href="{% url 'course_home' course_guid=course.guid %}">Home Page</a>
             {% with course.course_pages_ordered.all|first as page %}
             <!-- first page for now. Should look at view history and go to last seen page -->
-            <a class="collapse-item" href="{% url 'course_page' page_guid=page.guid %}">Readings</a>
+            <a class="collapse-item" href="{% url 'course_page' page_guid=page.guid %}">Course Content</a>
             {% endwith %}
             {% for test_instance in course.course_tests_ordered %}
             <!-- right now brings to practice test home, should route to question student is on when tracking there -->
@@ -73,7 +73,9 @@
         document.getElementById("timer").innerHTML = display_string;
     }
     update_time_display();
+    {% if page_view_instance.credit_page_view_time %}
     setInterval(update_time_display,1000);
+    {% endif %}
 </script>
 {% endif %}
 {% endblock %}
