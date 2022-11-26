@@ -424,6 +424,9 @@ class CoursePageViewInstance(BaseModel):
                 d['course_name'],
                 self.course_test.order
             )
+        elif (self.url == reverse('course_home', 
+            kwargs={'course_guid':self.course_view_instance.course.guid})):
+            d['title'] = '%s - Home' % d['course_name']
 
         return d
 
