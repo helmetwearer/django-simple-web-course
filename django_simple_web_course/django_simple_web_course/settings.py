@@ -98,14 +98,14 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 # Will dockerize in the future, but you'll need to setup postgres for now
 
 DATABASES = {
-    'default': {
+        'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'django_simple_web_course',
-        'USER': 'django',
-        'PASSWORD': 'djangouser',
-        'HOST': '127.0.0.1', 
-        'PORT': '5432',
-    }
+        'NAME': os.environ.get("DB_NAME", "django_simple_web_course"),
+        'USER': os.environ.get("DB_USER", "django"),
+        'PASSWORD': os.environ.get("DB_PASS", "SecureDjangoPassword12345"),
+        'HOST': os.environ.get("DB_HOST", "db"),
+        'PORT': os.environ.get("DB_PORT", 5432),
+    }   
 }
 
 

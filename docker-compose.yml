@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: ./docker_conf/launch.sh
+    # tail dev null leaves an open containter to shell in and look at
+    #command: tail -f /dev/null
+    env_file: ./docker_conf/.dev.env
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - 8000:8000
+      - 80:80
+      - 22:22
+      - 4321:4321
+      
+    depends_on:
+      - db
+    hostname: example.com
+  db:
+    image: postgres:12
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file: ./docker_conf/.dev.env
+  cache:
+    image: redis:7.0.9-bullseye
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server
+    volumes: 
+      - redis_data:/data
+volumes:
+  postgres_data:
+  redis_data:
