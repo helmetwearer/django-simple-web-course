@@ -1,15 +1,14 @@
-version: '3.8'
 services:
   web:
     build: 
       context: .
       dockerfile: Dockerfile
-    command: ./docker_conf/launch.sh
+    command: bash ./docker_conf/launch.sh
     # tail dev null leaves an open containter to shell in and look at
     #command: tail -f /dev/null
     env_file: ./docker_conf/.dev.env
     volumes:
-      - .:/usr/src/app/
+      - .:/home/django/app
     ports:
       - 8000:8000
       - 80:80
@@ -20,10 +19,14 @@ services:
       - db
     hostname: example.com
   db:
-    image: postgres:12
+    image: postgis/postgis:16-3.4
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - .:/mnt/django_app
     env_file: ./docker_conf/.dev.env
+    shm_size: 1g
+    ports:
+      - 5432:5432
+
   cache:
     image: redis:7.0.9-bullseye
     restart: always

@@ -1,34 +1,44 @@
 #!/bin/bash
-service supervisor stop
-service nginx stop
-cp docker_conf/supervisor.conf /etc/supervisor/conf.d/local.supervisor.conf
-cp docker_conf/nginx.conf /etc/nginx/sites-enabled/django_app.conf
-mkdir -p /var/log/django_simple_web_course
-[ -e /etc/nginx/sites-enabled/default ] && rm /etc/nginx/sites-enabled/default
-printenv > /usr/src/app/docker_conf/envvariables.bak
-python docker_conf/db_setup.py
-echo "DB Setup Complete"
+#
+printenv > /home/django/app/docker_conf/envvariables.bak
+IS_DEBUG=`/home/django/.env/bin/python /home/django/app/docker_conf/get_docker_env_var.py DEBUG_SERVER`
+echo "Debug flag set to:"
+echo "$IS_DEBUG"
+
+MAX_RETRIES=30
+RETRY_INTERVAL=5
+
+# Wait for the database to become available
+attempt=1
+while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
+    if [ $attempt -gt $MAX_RETRIES ]; then
+        echo "Error: Database did not become available within the timeout period."
+        exit 1
+    fi
+
+    echo "Waiting for the database to become available... Attempt $attempt"
+    sleep $RETRY_INTERVAL
+    ((attempt++))
+done
+
+echo "Database is now available."
+
+
 echo "Applying migrations"
-python django_simple_web_course/manage.py migrate --noinput
+/home/django/.env/bin/python docker_conf/db_setup.py
+/home/django/.env/bin/python django_simple_web_course/manage.py migrate --noinput
 echo "Migrations applied"
-COLLECT_STATIC=`python /usr/src/app/docker_conf/get_docker_env_var.py COLLECT_STATIC`
-if [ "$COLLECT_STATIC" == "True" ]
-then
-    echo "Collecting static files (this may take a moment)"
-    python django_simple_web_course/manage.py collectstatic --noinput
-    echo "Static files collected"
-    mkdir -p /var/www/static_root
-    ln -sf /usr/src/app/django_simple_web_course/static_root /var/www/static_root/static
-fi
-service supervisor start
+echo "DB initialized"
+echo "Collecting static files (this may take a moment)"
+/home/django/.env/bin/python manage.py collectstatic --noinput
+echo "Static files collected"   
+ln -sf /home/django/app/staticfiles /var/www/static_root/static
 service nginx start
+[ -e /home/django/supervisor.sock ] && rm /home/django/supervisor.sock
+supervisord
+supervisorctl stop all
+supervisorctl start all
 echo "Supervisor started. Pause for 2 seconds logs to create so we can tail them"
 sleep 2s
-echo ""
-echo ""
-echo "Warning: Logs are being tailed. Old errors may show before new server lines"
-echo ""
-echo ""
-echo ""
-echo ""
-tail -f /var/log/django_simple_web_course.out.log & tail -f /var/log/django_simple_web_course.err.log
+tail -f /var/log/django.out.log & tail -f /var/log/django.err.log
+#tail -f /dev/null
